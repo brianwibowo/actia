@@ -1,16 +1,14 @@
-import { useEffect, useState, type FormEvent } from 'react';
+import { useEffect, useMemo, useState, type FormEvent } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { Check, Copy, ExternalLink, Plus, Send } from 'lucide-react';
 import { NodeMap } from '../components/NodeMap';
 import {
   Button,
-  Card,
-  CardBody,
-  CardHeader,
   Field,
   Input,
   Modal,
   PageHeader,
+  SearchInput,
   StateBox,
   StatusBadge,
 } from '../components/ui';
@@ -50,6 +48,7 @@ export function ManageDevicesPage({ devices, onChanged }: ManageDevicesPageProps
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
 
+  const [filterText, setFilterText] = useState('');
   const [modalOpen, setModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState<FormState>(emptyForm);
@@ -108,6 +107,17 @@ export function ManageDevicesPage({ devices, onChanged }: ManageDevicesPageProps
     }
   }, [searchParams, devices, setSearchParams]);
 
+  const filteredDevices = useMemo(() => {
+    const q = filterText.trim().toLowerCase();
+    if (!q) return devices;
+    return devices.filter(
+      (d) =>
+        d.code.toLowerCase().includes(q) ||
+        d.name.toLowerCase().includes(q) ||
+        d.location.toLowerCase().includes(q),
+    );
+  }, [devices, filterText]);
+
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     setSaving(true);
@@ -151,7 +161,7 @@ export function ManageDevicesPage({ devices, onChanged }: ManageDevicesPageProps
       setModalOpen(false);
       onChanged();
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : 'Gagal menyimpan node');
+      setError(err instanceof ApiError ? err.message : 'Gagal menyimpan perangkat');
     } finally {
       setSaving(false);
     }
@@ -174,14 +184,14 @@ export function ManageDevicesPage({ devices, onChanged }: ManageDevicesPageProps
   }
 
   async function handleDelete(d: DeviceSummary) {
-    if (!window.confirm(`Hapus node ${d.code} beserta seluruh riwayat pembacaannya?`)) {
+    if (!window.confirm(`Hapus perangkat ${d.code} beserta seluruh riwayat pembacaannya?`)) {
       return;
     }
     try {
       await apiFetch(`/api/v1/devices/${d.id}`, { method: 'DELETE' });
       onChanged();
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : 'Gagal menghapus node');
+      setError(err instanceof ApiError ? err.message : 'Gagal menghapus perangkat');
     }
   }
 
@@ -231,15 +241,16 @@ export function ManageDevicesPage({ devices, onChanged }: ManageDevicesPageProps
   const parsedLng = form.lng.trim() === '' ? null : Number(form.lng);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <PageHeader
         title="Perangkat"
         subtitle="Kelola perangkat lapangan, lokasi peta, dan Device Key."
         actions={
           <Button
             variant="primary"
+            size="sm"
             onClick={openCreate}
-            icon={<Plus size={17} aria-hidden="true" />}
+            icon={<Plus size={15} aria-hidden="true" />}
           >
             Tambah Perangkat
           </Button>
@@ -249,11 +260,11 @@ export function ManageDevicesPage({ devices, onChanged }: ManageDevicesPageProps
       {revealedKey && (
         <StateBox
           tone="success"
-          title={`Langkah Selanjutnya: Simpan Device Key untuk ${revealedKey.code}`}
-          description="Simpan key ini di firmware node. Anda juga dapat langsung mengirim 1 data uji perdana agar node ini langsung berstatus Online dan grafiknya terisi."
+          title={`Device Key untuk ${revealedKey.code} (tampil satu kali)`}
+          description="Simpan key ini di firmware perangkat. Anda juga dapat mengirim 1 data uji perdana agar perangkat langsung berstatus Online."
           action={
             <div className="space-y-3">
-              <pre className="mono overflow-x-auto rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-xs text-slate-900 dark:border-slate-700 dark:bg-[#0e141a] dark:text-slate-100">
+              <pre className="mono overflow-x-auto rounded-md border border-zinc-200 bg-white px-3 py-2 text-xs text-zinc-900 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-100">
                 {revealedKey.key}
               </pre>
               <div className="flex flex-wrap items-center gap-2">
@@ -263,13 +274,13 @@ export function ManageDevicesPage({ devices, onChanged }: ManageDevicesPageProps
                   onClick={() => void copyKey(revealedKey.key)}
                   icon={
                     copied ? (
-                      <Check size={15} aria-hidden="true" />
+                      <Check size={14} aria-hidden="true" />
                     ) : (
-                      <Copy size={15} aria-hidden="true" />
+                      <Copy size={14} aria-hidden="true" />
                     )
                   }
                 >
-                  {copied ? 'Key Tersalin' : '1. Salin Device Key'}
+                  {copied ? 'Tersalin' : 'Salin Key'}
                 </Button>
 
                 <Button
@@ -277,13 +288,13 @@ export function ManageDevicesPage({ devices, onChanged }: ManageDevicesPageProps
                   size="sm"
                   disabled={sendingTest}
                   onClick={() => void sendSampleReading()}
-                  icon={<Send size={15} aria-hidden="true" />}
+                  icon={<Send size={14} aria-hidden="true" />}
                 >
                   {sendingTest
                     ? 'Mengirim...'
                     : testSent
-                      ? 'Data Uji Terkirim (Kirim Lagi)'
-                      : '2. Kirim Data Uji Perdana'}
+                      ? 'Data Uji Terkirim'
+                      : 'Kirim Data Uji'}
                 </Button>
 
                 {testSent && (
@@ -291,9 +302,9 @@ export function ManageDevicesPage({ devices, onChanged }: ManageDevicesPageProps
                     variant="secondary"
                     size="sm"
                     onClick={() => navigate(`/devices/${revealedKey.id}`)}
-                    icon={<ExternalLink size={15} aria-hidden="true" />}
+                    icon={<ExternalLink size={14} aria-hidden="true" />}
                   >
-                    3. Buka Grafik Node {revealedKey.code}
+                    Buka Grafik
                   </Button>
                 )}
 
@@ -308,112 +319,122 @@ export function ManageDevicesPage({ devices, onChanged }: ManageDevicesPageProps
 
       {error && !modalOpen && <StateBox tone="error" role="alert" description={error} />}
 
-      <Card>
-        <CardHeader
-          title="Perangkat Terdaftar"
-          description={`Total ${devices.length} node lapangan terdaftar.`}
+      {/* Shadcn DataTable Toolbar */}
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <SearchInput
+          aria-label="Filter perangkat"
+          placeholder="Filter kode, nama, lokasi..."
+          value={filterText}
+          onChange={(e) => setFilterText(e.target.value)}
+          className="max-w-xs"
         />
-        <CardBody className="p-0 sm:p-0">
-          {devices.length === 0 ? (
-            <div className="p-5">
-              <StateBox
-                title="Belum ada node"
-                description="Klik tombol Tambah Node Baru untuk membuat node pertama."
-              />
-            </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full border-collapse text-left text-sm">
-                <thead>
-                  <tr className="border-b border-slate-200 bg-slate-50 text-xs font-semibold text-slate-600 dark:border-slate-800 dark:bg-[#0d1318] dark:text-slate-400">
-                    <th className="px-5 py-3.5">Kode & Nama</th>
-                    <th className="px-5 py-3.5">Status</th>
-                    <th className="px-5 py-3.5">Lokasi</th>
-                    <th className="px-5 py-3.5">Interval</th>
-                    <th className="px-5 py-3.5">Batas Aki</th>
-                    <th className="px-5 py-3.5">Batas Offline</th>
-                    <th className="px-5 py-3.5">Aksi</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                  {devices.map((d) => (
-                    <tr key={d.id} className="hover:bg-slate-50/80 dark:hover:bg-slate-800/40">
-                      <td className="px-5 py-3.5">
-                        <Link
-                          to={`/devices/${d.id}`}
-                          className="mono font-semibold text-emerald-700 hover:underline dark:text-emerald-300"
-                        >
-                          {d.code}
-                        </Link>
-                        <div className="font-medium text-slate-900 dark:text-slate-100">{d.name}</div>
-                      </td>
-                      <td className="px-5 py-3.5">
-                        <StatusBadge
-                          status={d.status}
-                          label={
-                            d.status === 'online'
-                              ? 'Online'
-                              : d.status === 'maintenance'
-                                ? 'Pemeliharaan'
-                                : 'Offline'
-                          }
-                        />
-                      </td>
-                      <td className="px-5 py-3.5">
-                        <div className="text-slate-800 dark:text-slate-200">{d.location || '-'}</div>
-                        <div className="mono text-xs text-slate-500 dark:text-slate-400">
-                          {d.lat !== null && d.lng !== null ? `${d.lat}, ${d.lng}` : 'Tanpa koordinat'}
-                        </div>
-                      </td>
-                      <td className="mono px-5 py-3.5 text-xs">{d.report_interval_s}s</td>
-                      <td className="mono px-5 py-3.5 text-xs">
-                        {d.battery_pct_min ?? 20}% / {d.battery_voltage_min ?? 11.6}V
-                      </td>
-                      <td className="mono px-5 py-3.5 text-xs">{d.offline_after_s ?? 900}s</td>
-                      <td className="px-5 py-3.5">
-                        <div className="flex flex-wrap gap-2">
-                          <Link
-                            to={`/devices/${d.id}`}
-                            className="inline-flex min-h-[44px] items-center rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-sm font-semibold text-slate-800 hover:bg-slate-50 dark:border-slate-700 dark:bg-[#161f27] dark:text-slate-100 dark:hover:bg-slate-800"
-                          >
-                            Grafik
-                          </Link>
-                          <Button variant="secondary" size="sm" onClick={() => openEdit(d)}>
-                            Ubah
-                          </Button>
-                          <Button
-                            variant="secondary"
-                            size="sm"
-                            onClick={() => void handleRotateKey(d)}
-                          >
-                            Key Baru
-                          </Button>
-                          <Button
-                            variant="danger"
-                            size="sm"
-                            onClick={() => void handleDelete(d)}
-                          >
-                            Hapus
-                          </Button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </CardBody>
-      </Card>
+        <span className="text-xs text-zinc-500 dark:text-zinc-400">
+          {filteredDevices.length} perangkat
+        </span>
+      </div>
+
+      {/* Shadcn DataTable */}
+      <div className="overflow-x-auto rounded-md border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-[#0c0c0f]">
+        <table className="w-full border-collapse text-left text-sm">
+          <thead>
+            <tr className="border-b border-zinc-200 bg-zinc-50/70 text-xs font-medium text-zinc-500 dark:border-zinc-800 dark:bg-zinc-900/50 dark:text-zinc-400">
+              <th className="px-4 py-3">Kode</th>
+              <th className="px-4 py-3">Nama Perangkat</th>
+              <th className="px-4 py-3">Status</th>
+              <th className="px-4 py-3">Lokasi</th>
+              <th className="px-4 py-3">Interval</th>
+              <th className="px-4 py-3">Batas Aki</th>
+              <th className="px-4 py-3 text-right">Aksi</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-zinc-200 dark:divide-zinc-800">
+            {filteredDevices.length === 0 ? (
+              <tr>
+                <td colSpan={7} className="px-4 py-8 text-center text-xs text-zinc-500 dark:text-zinc-400">
+                  Belum ada perangkat yang ditampilkan.
+                </td>
+              </tr>
+            ) : (
+              filteredDevices.map((d) => (
+                <tr key={d.id} className="hover:bg-zinc-50/70 dark:hover:bg-zinc-900/40">
+                  <td className="px-4 py-3">
+                    <Link
+                      to={`/devices/${d.id}`}
+                      className="mono text-xs font-medium text-zinc-950 underline-offset-4 hover:underline dark:text-zinc-100"
+                    >
+                      {d.code}
+                    </Link>
+                  </td>
+                  <td className="px-4 py-3 font-medium text-zinc-900 dark:text-zinc-100">
+                    {d.name}
+                  </td>
+                  <td className="px-4 py-3">
+                    <StatusBadge
+                      status={d.status}
+                      label={
+                        d.status === 'online'
+                          ? 'Online'
+                          : d.status === 'maintenance'
+                            ? 'Pemeliharaan'
+                            : 'Offline'
+                      }
+                    />
+                  </td>
+                  <td className="px-4 py-3">
+                    <div className="text-xs text-zinc-800 dark:text-zinc-200">{d.location || '-'}</div>
+                    <div className="mono text-[11px] text-zinc-500 dark:text-zinc-400">
+                      {d.lat !== null && d.lng !== null ? `${d.lat}, ${d.lng}` : 'Tanpa koordinat'}
+                    </div>
+                  </td>
+                  <td className="mono px-4 py-3 text-xs text-zinc-600 dark:text-zinc-400">
+                    {d.report_interval_s}s
+                  </td>
+                  <td className="mono px-4 py-3 text-xs text-zinc-600 dark:text-zinc-400">
+                    {d.battery_pct_min ?? 20}% / {d.battery_voltage_min ?? 11.6}V
+                  </td>
+                  <td className="px-4 py-3 text-right">
+                    <div className="inline-flex flex-wrap justify-end gap-1.5">
+                      <Button
+                        variant="secondary"
+                        size="sm"
+                        onClick={() => navigate(`/devices/${d.id}`)}
+                      >
+                        Detail
+                      </Button>
+                      <Button variant="secondary" size="sm" onClick={() => openEdit(d)}>
+                        Ubah
+                      </Button>
+                      <Button
+                        variant="secondary"
+                        size="sm"
+                        onClick={() => void handleRotateKey(d)}
+                      >
+                        Key Baru
+                      </Button>
+                      <Button
+                        variant="danger"
+                        size="sm"
+                        onClick={() => void handleDelete(d)}
+                      >
+                        Hapus
+                      </Button>
+                    </div>
+                  </td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
 
       <Modal
         open={modalOpen}
-        title={editingId ? 'Ubah Data Node' : 'Tambah Node Baru'}
+        title={editingId ? 'Ubah Perangkat' : 'Tambah Perangkat Baru'}
         onClose={() => setModalOpen(false)}
         titleId="node-modal-title"
       >
         <form onSubmit={handleSubmit} className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <Field label="Kode Node" htmlFor="dev-code">
+          <Field label="Kode Perangkat" htmlFor="dev-code">
             <Input
               id="dev-code"
               className="mono"
@@ -424,7 +445,7 @@ export function ManageDevicesPage({ devices, onChanged }: ManageDevicesPageProps
             />
           </Field>
 
-          <Field label="Nama Node" htmlFor="dev-name">
+          <Field label="Nama Perangkat" htmlFor="dev-name">
             <Input
               id="dev-name"
               required
@@ -468,12 +489,12 @@ export function ManageDevicesPage({ devices, onChanged }: ManageDevicesPageProps
           </Field>
 
           <div className="sm:col-span-2">
-            <p className="mb-2 text-xs font-medium text-slate-600 dark:text-slate-400">
+            <p className="mb-2 text-xs text-zinc-500 dark:text-zinc-400">
               Klik peta untuk mengisi koordinat otomatis:
             </p>
             <NodeMap
               devices={[]}
-              height={210}
+              height={200}
               pickCoords={{
                 lat: Number.isFinite(parsedLat) ? parsedLat : null,
                 lng: Number.isFinite(parsedLng) ? parsedLng : null,
@@ -538,12 +559,12 @@ export function ManageDevicesPage({ devices, onChanged }: ManageDevicesPageProps
             </div>
           )}
 
-          <div className="flex justify-end gap-2.5 pt-2 sm:col-span-2">
+          <div className="flex justify-end gap-2 pt-2 sm:col-span-2">
             <Button variant="secondary" onClick={() => setModalOpen(false)}>
               Batal
             </Button>
             <Button type="submit" variant="primary" disabled={saving}>
-              {saving ? 'Menyimpan...' : 'Simpan Node'}
+              {saving ? 'Menyimpan...' : 'Simpan'}
             </Button>
           </div>
         </form>

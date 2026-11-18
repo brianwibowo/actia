@@ -14,7 +14,7 @@ export function Field({
 }) {
   return (
     <div className={`flex flex-col gap-1.5 ${className}`}>
-      <label htmlFor={htmlFor} className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+      <label htmlFor={htmlFor} className="text-xs font-medium text-zinc-900 dark:text-zinc-200">
         {label}
       </label>
       {children}
@@ -23,7 +23,7 @@ export function Field({
 }
 
 const baseFieldClass =
-  'w-full min-h-[44px] rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-sm text-slate-900 placeholder:text-slate-500 transition-colors focus:border-emerald-700 dark:border-slate-700 dark:bg-[#0e141a] dark:text-slate-100 dark:placeholder:text-slate-400 dark:focus:border-emerald-400';
+  'w-full min-h-[38px] rounded-md border border-zinc-200 bg-transparent px-3 py-1.5 text-sm text-zinc-900 shadow-sm placeholder:text-zinc-500 transition-colors focus:border-zinc-900 dark:border-zinc-800 dark:bg-zinc-950/60 dark:text-zinc-100 dark:placeholder:text-zinc-400 dark:focus:border-zinc-300';
 
 export function Input({ className = '', ...props }: InputHTMLAttributes<HTMLInputElement>) {
   return <input className={`${baseFieldClass} ${className}`} {...props} />;
@@ -44,13 +44,13 @@ export function SearchInput({
   return (
     <div className={`relative min-w-[200px] flex-1 ${className}`}>
       <Search
-        size={16}
-        className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 dark:text-slate-400"
+        size={15}
+        className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500 dark:text-zinc-400"
         aria-hidden="true"
       />
       <input
         type="search"
-        className={`${baseFieldClass} pl-10`}
+        className={`${baseFieldClass} pl-9`}
         {...props}
       />
     </div>

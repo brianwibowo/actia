@@ -142,7 +142,7 @@ export function NodeMap({
   return (
     <div
       ref={containerRef}
-      className="w-full overflow-hidden rounded-xl border border-slate-200 dark:border-slate-800"
+      className="w-full overflow-hidden rounded-lg border border-zinc-200 dark:border-zinc-800"
       style={{ height: `${height}px` }}
       aria-label="Peta lokasi perangkat"
     />

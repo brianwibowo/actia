@@ -29,7 +29,7 @@ export function Modal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 p-4 backdrop-blur-[2px]"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-[1px]"
       role="dialog"
       aria-modal="true"
       aria-labelledby={titleId}
@@ -37,18 +37,18 @@ export function Modal({
         if (e.target === e.currentTarget) onClose();
       }}
     >
-      <div className="max-h-[90dvh] w-full max-w-2xl overflow-y-auto rounded-2xl border border-slate-200 bg-white p-6 shadow-float dark:border-slate-800 dark:bg-[#11171d]">
-        <div className="mb-5 flex items-center justify-between gap-4 border-b border-slate-100 pb-4 dark:border-slate-800">
-          <h2 id={titleId} className="text-lg font-bold tracking-tight text-slate-900 dark:text-slate-100">
+      <div className="max-h-[90dvh] w-full max-w-xl overflow-y-auto rounded-xl border border-zinc-200 bg-white p-6 shadow-float dark:border-zinc-800 dark:bg-[#09090b]">
+        <div className="mb-4 flex items-center justify-between gap-4">
+          <h2 id={titleId} className="text-lg font-semibold tracking-tight text-zinc-950 dark:text-zinc-50">
             {title}
           </h2>
           <button
             type="button"
             onClick={onClose}
             aria-label="Tutup dialog"
-            className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-xl border border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
+            className="inline-flex h-8 w-8 items-center justify-center rounded-md text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100"
           >
-            <X size={18} aria-hidden="true" />
+            <X size={16} aria-hidden="true" />
           </button>
         </div>
         {children}

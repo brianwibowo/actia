@@ -5,17 +5,17 @@
 @layer base {
   :root,
   [data-theme='light'] {
-    --chart-text: #0f172a;
-    --chart-muted: #475569;
-    --chart-grid: #e2e8f0;
+    --chart-text: #09090b;
+    --chart-muted: #52525b;
+    --chart-grid: #e4e4e7;
     --chart-surface: #ffffff;
   }
 
   [data-theme='dark'] {
-    --chart-text: #f1f5f9;
-    --chart-muted: #94a3b8;
-    --chart-grid: #1e293b;
-    --chart-surface: #11171d;
+    --chart-text: #fafafa;
+    --chart-muted: #a1a1aa;
+    --chart-grid: #27272a;
+    --chart-surface: #09090b;
   }
 
   html {
@@ -23,7 +23,7 @@
   }
 
   body {
-    @apply bg-[#f6f8fa] text-slate-900 dark:bg-[#090d11] dark:text-slate-100 font-sans antialiased;
+    @apply bg-white text-zinc-950 dark:bg-[#09090b] dark:text-zinc-50 font-sans antialiased;
   }
 
   code,
@@ -34,12 +34,12 @@
   }
 
   :focus-visible {
-    outline: 2px solid #047857;
+    outline: 2px solid #18181b;
     outline-offset: 2px;
   }
 
   [data-theme='dark'] :focus-visible {
-    outline-color: #34d399;
+    outline-color: #d4d4d8;
   }
 }
 
@@ -48,7 +48,7 @@
   left: -9999px;
   top: 0;
   z-index: 1000;
-  @apply rounded-lg bg-emerald-700 px-4 py-2.5 text-sm font-semibold text-white dark:bg-emerald-400 dark:text-emerald-950;
+  @apply rounded-md bg-zinc-900 px-4 py-2 text-sm font-medium text-zinc-50 dark:bg-zinc-50 dark:text-zinc-900;
 }
 
 .skip-link:focus {
@@ -56,19 +56,18 @@
   top: 0.75rem;
 }
 
-/* Leaflet integration & dark mode tile tuning */
 .leaflet-container {
   font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
   z-index: 1;
 }
 
 [data-theme='dark'] .leaflet-tile-pane {
-  filter: brightness(0.78) invert(1) contrast(0.95) hue-rotate(190deg) saturate(0.45);
+  filter: brightness(0.78) invert(1) contrast(0.95) hue-rotate(190deg) saturate(0.4);
 }
 
 [data-theme='dark'] .leaflet-popup-content-wrapper,
 [data-theme='dark'] .leaflet-popup-tip {
-  background: #11171d;
-  color: #f1f5f9;
-  border: 1px solid #1e293b;
+  background: #09090b;
+  color: #fafafa;
+  border: 1px solid #27272a;
 }
