@@ -1,5 +1,6 @@
 import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
+import { clearDemoDevices, seedDemoDevices } from '../db/seed.js';
 import { query, withTransaction } from '../db/pool.js';
 import { requireAdmin, requireAuth } from '../plugins/auth.js';
 import { generateDeviceKey } from '../services/device-key.js';
@@ -264,4 +265,14 @@ export async function deviceRoutes(app: FastifyInstance) {
       return { device_key: raw };
     },
   );
+
+  app.post('/api/v1/devices/seed-demo', { preHandler: requireAdmin }, async () => {
+    await seedDemoDevices();
+    return { ok: true };
+  });
+
+  app.delete('/api/v1/devices/seed-demo', { preHandler: requireAdmin }, async () => {
+    const deleted = await clearDemoDevices();
+    return { ok: true, deleted };
+  });
 }

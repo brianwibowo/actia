@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState, type FormEvent } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { Check, Copy, ExternalLink, Plus, Send } from 'lucide-react';
+import { Check, Copy, Database, ExternalLink, Plus, Send, Trash2 } from 'lucide-react';
 import { NodeMap } from '../components/NodeMap';
 import {
   Button,
@@ -62,6 +62,39 @@ export function ManageDevicesPage({ devices, onChanged }: ManageDevicesPageProps
   const [copied, setCopied] = useState(false);
   const [sendingTest, setSendingTest] = useState(false);
   const [testSent, setTestSent] = useState(false);
+  const [seedBusy, setSeedBusy] = useState(false);
+  const hasSeedDevices = devices.some((d) =>
+    ['ACT-01', 'ACT-02', 'ACT-03', 'ACT-04', 'ACT-05'].includes(d.code),
+  );
+
+  async function handleSeedDemo() {
+    setSeedBusy(true);
+    setError('');
+    try {
+      await apiFetch('/api/v1/devices/seed-demo', { method: 'POST' });
+      onChanged();
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : 'Gagal mengisi data seed');
+    } finally {
+      setSeedBusy(false);
+    }
+  }
+
+  async function handleClearDemo() {
+    if (!window.confirm('Hapus seluruh perangkat contoh (ACT-01 s/d ACT-05) beserta riwayat datanya?')) {
+      return;
+    }
+    setSeedBusy(true);
+    setError('');
+    try {
+      await apiFetch('/api/v1/devices/seed-demo', { method: 'DELETE' });
+      onChanged();
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : 'Gagal menghapus data seed');
+    } finally {
+      setSeedBusy(false);
+    }
+  }
 
   function openCreate() {
     setEditingId(null);
@@ -246,14 +279,37 @@ export function ManageDevicesPage({ devices, onChanged }: ManageDevicesPageProps
         title="Perangkat"
         subtitle="Kelola perangkat lapangan, lokasi peta, dan Device Key."
         actions={
-          <Button
-            variant="primary"
-            size="sm"
-            onClick={openCreate}
-            icon={<Plus size={15} aria-hidden="true" />}
-          >
-            Tambah Perangkat
-          </Button>
+          <>
+            {hasSeedDevices ? (
+              <Button
+                variant="danger"
+                size="sm"
+                disabled={seedBusy}
+                onClick={() => void handleClearDemo()}
+                icon={<Trash2 size={14} aria-hidden="true" />}
+              >
+                {seedBusy ? 'Memproses...' : 'Hapus Data Seed'}
+              </Button>
+            ) : (
+              <Button
+                variant="secondary"
+                size="sm"
+                disabled={seedBusy}
+                onClick={() => void handleSeedDemo()}
+                icon={<Database size={14} aria-hidden="true" />}
+              >
+                {seedBusy ? 'Mengisi...' : 'Isi Data Seed'}
+              </Button>
+            )}
+            <Button
+              variant="primary"
+              size="sm"
+              onClick={openCreate}
+              icon={<Plus size={15} aria-hidden="true" />}
+            >
+              Tambah Perangkat
+            </Button>
+          </>
         }
       />
 
