@@ -1,0 +1,35 @@
+import { useNavigate } from 'react-router-dom'
+import { swalToast } from '@/lib/swal'
+import { useTelemetry } from '@/context/telemetry-provider'
+import { ConfirmDialog } from '@/components/confirm-dialog'
+
+interface SignOutDialogProps {
+  open: boolean
+  onOpenChange: (open: boolean) => void
+}
+
+export function SignOutDialog({ open, onOpenChange }: SignOutDialogProps) {
+  const navigate = useNavigate()
+  const { signOut } = useTelemetry()
+
+  const handleSignOut = () => {
+    void signOut().then(() => {
+      onOpenChange(false)
+      swalToast('info', 'Anda telah keluar dari sesi')
+      navigate('/login', { replace: true })
+    })
+  }
+
+  return (
+    <ConfirmDialog
+      open={open}
+      onOpenChange={onOpenChange}
+      title='Sign out'
+      desc='Are you sure you want to sign out? You will need to sign in again to access your account.'
+      confirmText='Sign out'
+      destructive
+      handleConfirm={handleSignOut}
+      className='sm:max-w-sm'
+    />
+  )
+}

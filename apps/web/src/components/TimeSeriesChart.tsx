@@ -1,30 +1,36 @@
-import { useEffect, useRef, useState } from 'react';
-import * as echarts from 'echarts';
-import { Card, CardBody, CardHeader, StateBox } from './ui';
+import { useEffect, useRef, useState } from 'react'
+import * as echarts from 'echarts'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
 
 export interface ChartSeries {
-  name: string;
-  data: Array<[string, number | null]>;
-  color: string;
-  yAxisIndex?: number;
+  name: string
+  data: Array<[string, number | null]>
+  color: string
+  yAxisIndex?: number
 }
 
 interface TimeSeriesChartProps {
-  title: string;
-  subtitle?: string;
-  yLeftLabel: string;
-  yRightLabel?: string;
-  series: ChartSeries[];
-  emptyMessage: string;
+  title: string
+  subtitle?: string
+  yLeftLabel: string
+  yRightLabel?: string
+  series: ChartSeries[]
+  emptyMessage: string
 }
 
 function hexToRgba(hex: string, alpha: number): string {
-  const clean = hex.replace('#', '');
-  if (clean.length !== 6) return `rgba(4, 120, 87, ${alpha})`;
-  const r = parseInt(clean.slice(0, 2), 16);
-  const g = parseInt(clean.slice(2, 4), 16);
-  const b = parseInt(clean.slice(4, 6), 16);
-  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+  const clean = hex.replace('#', '')
+  if (clean.length !== 6) return `rgba(16, 185, 129, ${alpha})`
+  const r = parseInt(clean.slice(0, 2), 16)
+  const g = parseInt(clean.slice(2, 4), 16)
+  const b = parseInt(clean.slice(4, 6), 16)
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`
 }
 
 export function TimeSeriesChart({
@@ -35,48 +41,48 @@ export function TimeSeriesChart({
   series,
   emptyMessage,
 }: TimeSeriesChartProps) {
-  const elRef = useRef<HTMLDivElement | null>(null);
-  const chartRef = useRef<echarts.ECharts | null>(null);
-  const [themeTick, setThemeTick] = useState(0);
+  const elRef = useRef<HTMLDivElement | null>(null)
+  const chartRef = useRef<echarts.ECharts | null>(null)
+  const [themeTick, setThemeTick] = useState(0)
 
-  const hasData = series.some((s) => s.data.some((pt) => pt[1] !== null));
+  const hasData = series.some((s) => s.data.some((pt) => pt[1] !== null))
 
   useEffect(() => {
     const observer = new MutationObserver(() => {
-      setThemeTick((n) => n + 1);
-    });
+      setThemeTick((n) => n + 1)
+    })
     observer.observe(document.documentElement, {
       attributes: true,
-      attributeFilter: ['data-theme'],
-    });
-    return () => observer.disconnect();
-  }, []);
+      attributeFilter: ['class'],
+    })
+    return () => observer.disconnect()
+  }, [])
 
   useEffect(() => {
-    if (!elRef.current || !hasData) return;
+    if (!elRef.current || !hasData) return
 
-    const chart = echarts.init(elRef.current);
-    chartRef.current = chart;
+    const chart = echarts.init(elRef.current)
+    chartRef.current = chart
 
-    const ro = new ResizeObserver(() => chart.resize());
-    ro.observe(elRef.current);
+    const ro = new ResizeObserver(() => chart.resize())
+    ro.observe(elRef.current)
 
     return () => {
-      ro.disconnect();
-      chart.dispose();
-      chartRef.current = null;
-    };
-  }, [hasData]);
+      ro.disconnect()
+      chart.dispose()
+      chartRef.current = null
+    }
+  }, [hasData])
 
   useEffect(() => {
-    const chart = chartRef.current;
-    if (!chart || !hasData) return;
+    const chart = chartRef.current
+    if (!chart || !hasData) return
 
-    const styles = getComputedStyle(document.documentElement);
-    const textColor = styles.getPropertyValue('--chart-text').trim() || '#0f172a';
-    const mutedColor = styles.getPropertyValue('--chart-muted').trim() || '#475569';
-    const gridColor = styles.getPropertyValue('--chart-grid').trim() || '#e2e8f0';
-    const surfaceColor = styles.getPropertyValue('--chart-surface').trim() || '#ffffff';
+    const isDark = document.documentElement.classList.contains('dark')
+    const textColor = isDark ? '#f8fafc' : '#0f172a'
+    const mutedColor = isDark ? '#94a3b8' : '#64748b'
+    const gridColor = isDark ? '#1e293b' : '#e2e8f0'
+    const surfaceColor = isDark ? '#0f172a' : '#ffffff'
 
     const yAxes: echarts.YAXisComponentOption[] = [
       {
@@ -86,7 +92,7 @@ export function TimeSeriesChart({
         axisLabel: { color: mutedColor, fontSize: 11 },
         splitLine: { lineStyle: { color: gridColor, type: 'dashed' } },
       },
-    ];
+    ]
 
     if (yRightLabel) {
       yAxes.push({
@@ -95,7 +101,7 @@ export function TimeSeriesChart({
         nameTextStyle: { color: mutedColor, fontSize: 11 },
         axisLabel: { color: mutedColor, fontSize: 11 },
         splitLine: { show: false },
-      });
+      })
     }
 
     chart.setOption(
@@ -150,20 +156,25 @@ export function TimeSeriesChart({
           data: s.data,
         })),
       },
-      true,
-    );
-  }, [hasData, series, yLeftLabel, yRightLabel, themeTick]);
+      true
+    )
+  }, [hasData, series, yLeftLabel, yRightLabel, themeTick])
 
   return (
     <Card>
-      <CardHeader title={title} description={subtitle} />
-      <CardBody>
+      <CardHeader>
+        <CardTitle>{title}</CardTitle>
+        {subtitle && <CardDescription>{subtitle}</CardDescription>}
+      </CardHeader>
+      <CardContent>
         {!hasData ? (
-          <StateBox description={emptyMessage} />
+          <div className='rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground'>
+            {emptyMessage}
+          </div>
         ) : (
-          <div ref={elRef} className="h-[260px] w-full sm:h-[320px]" />
+          <div ref={elRef} className='h-[260px] w-full sm:h-[320px]' />
         )}
-      </CardBody>
+      </CardContent>
     </Card>
-  );
+  )
 }

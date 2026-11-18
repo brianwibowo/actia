@@ -13,9 +13,9 @@ interface NodeMapProps {
 }
 
 function markerColor(d: DeviceSummary): string {
-  if (d.status === 'offline') return '#b91c1c';
-  if (d.open_alerts > 0 || d.status === 'maintenance') return '#b45309';
-  return '#047857';
+  if (d.status === 'offline') return '#dc2626';
+  if (d.open_alerts > 0 || d.status === 'maintenance') return '#FFD758';
+  return '#218DAE';
 }
 
 export function NodeMap({
@@ -85,9 +85,9 @@ export function NodeMap({
       const pos: [number, number] = [pickCoords.lat, pickCoords.lng];
       L.circleMarker(pos, {
         radius: 9,
-        color: '#0f172a',
+        color: '#0d242c',
         weight: 2,
-        fillColor: '#047857',
+        fillColor: '#2BBBD7',
         fillOpacity: 0.92,
       })
         .bindTooltip('Lokasi node terpilih')
