@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import {
   AlertTriangle,
   BatteryCharging,
+  CheckCircle2,
   ChevronRight,
   Cpu,
   Plus,
@@ -23,7 +24,7 @@ import {
   StateBox,
   StatusBadge,
 } from '../components/ui';
-import { fmtNum, formatRelativeTime } from '../lib/api';
+import { apiFetch, fmtNum, formatRelativeTime } from '../lib/api';
 import type { AlertItem, AuthUser, DeviceSummary } from '../types';
 
 interface OverviewPageProps {
@@ -33,6 +34,7 @@ interface OverviewPageProps {
   loading: boolean;
   error: string;
   onRetry: () => void;
+  onChanged: () => void;
 }
 
 type StatusFilter = 'all' | 'online' | 'offline' | 'alert';
@@ -44,10 +46,12 @@ export function OverviewPage({
   loading,
   error,
   onRetry,
+  onChanged,
 }: OverviewPageProps) {
   const navigate = useNavigate();
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
+  const [ackingId, setAckingId] = useState<number | null>(null);
 
   const onlineCount = devices.filter((d) => d.status === 'online').length;
   const offlineCount = devices.filter((d) => d.status === 'offline').length;
@@ -78,11 +82,21 @@ export function OverviewPage({
     });
   }, [devices, search, statusFilter]);
 
+  async function handleQuickAck(alertId: number) {
+    setAckingId(alertId);
+    try {
+      await apiFetch(`/api/v1/alerts/${alertId}`, { method: 'PATCH' });
+      onChanged();
+    } finally {
+      setAckingId(null);
+    }
+  }
+
   return (
     <>
       <PageHeader
-        title="Ringkasan Node Lapangan"
-        subtitle="Pantau kondisi sensor tanah, daya surya, dan peringatan aktif di setiap lokasi."
+        title="Peta & Ringkasan Jaringan"
+        subtitle="Pantau kondisi sensor tanah, daya surya, dan tindak lanjuti peringatan aktif dari satu layar."
         actions={
           <>
             <Button
@@ -95,11 +109,11 @@ export function OverviewPage({
             </Button>
             {user.role === 'admin' && (
               <Link
-                to="/devices/manage"
+                to="/devices/manage?new=1"
                 className="inline-flex min-h-[44px] items-center gap-2 rounded-xl bg-emerald-700 px-4 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-emerald-800 dark:bg-emerald-400 dark:text-emerald-950 dark:hover:bg-emerald-300"
               >
                 <Plus size={16} aria-hidden="true" />
-                <span>Kelola Node</span>
+                <span>Tambah Node Baru</span>
               </Link>
             )}
           </>
@@ -127,8 +141,8 @@ export function OverviewPage({
         />
       ) : devices.length === 0 ? (
         <Card className="overflow-hidden">
-          <div className="grid grid-cols-1 md:grid-cols-12">
-            <div className="relative min-h-[220px] md:col-span-5">
+          <div className="grid grid-cols-1 lg:grid-cols-12">
+            <div className="relative min-h-[240px] lg:col-span-5">
               <img
                 src="/images/weather-station.jpg"
                 alt="Stasiun pemantauan telemetri lapangan bertenaga surya"
@@ -136,32 +150,72 @@ export function OverviewPage({
               />
               <div
                 aria-hidden="true"
-                className="absolute inset-0 bg-gradient-to-t from-slate-950/75 via-slate-950/20 to-transparent"
+                className="absolute inset-0 bg-gradient-to-t from-slate-950/85 via-slate-950/35 to-transparent"
               />
-              <div className="absolute bottom-4 left-4 right-4 text-white">
+              <div className="absolute bottom-5 left-5 right-5 text-white">
                 <div className="text-xs font-semibold uppercase tracking-wider text-emerald-300">
-                  Node Telemetri Lapangan
+                  Mulai Cepat Actia Telemetry
                 </div>
-                <div className="mt-0.5 text-sm font-bold">
-                  Sensor Tanah, Cuaca & Panel Surya
+                <div className="mt-1 text-lg font-bold">
+                  3 Langkah Menghubungkan Node Lapangan
                 </div>
               </div>
             </div>
-            <div className="flex flex-col justify-center p-6 md:col-span-7 sm:p-8">
+
+            <div className="flex flex-col justify-center p-6 lg:col-span-7 sm:p-8">
               <h2 className="text-xl font-bold tracking-tight text-slate-900 dark:text-slate-100">
-                Belum ada node terdaftar
+                Belum ada node terdaftar di jaringan
               </h2>
-              <p className="mt-2 text-sm leading-relaxed text-slate-600 dark:text-slate-400">
-                Daftarkan node lapangan pertama Anda untuk mendapatkan device key, memetakan koordinat GPS, dan mulai menerima data suhu, kelembapan tanah, pH, EC, serta daya panel surya.
+              <p className="mt-1.5 text-sm text-slate-600 dark:text-slate-400">
+                Ikuti alur berikut untuk mulai memantau kelembapan tanah, pH, EC, dan daya panel surya:
               </p>
+
+              <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-3">
+                <div className="rounded-xl border border-slate-200 bg-slate-50/70 p-3.5 dark:border-slate-800 dark:bg-[#0d1318]">
+                  <div className="mono text-xs font-bold text-emerald-700 dark:text-emerald-400">
+                    LANGKAH 01
+                  </div>
+                  <div className="mt-1 text-sm font-bold text-slate-900 dark:text-slate-100">
+                    Daftarkan Node
+                  </div>
+                  <p className="mt-1 text-xs text-slate-600 dark:text-slate-400">
+                    Isi kode node, nama blok kebun, dan titik koordinat di peta.
+                  </p>
+                </div>
+
+                <div className="rounded-xl border border-slate-200 bg-slate-50/70 p-3.5 dark:border-slate-800 dark:bg-[#0d1318]">
+                  <div className="mono text-xs font-bold text-emerald-700 dark:text-emerald-400">
+                    LANGKAH 02
+                  </div>
+                  <div className="mt-1 text-sm font-bold text-slate-900 dark:text-slate-100">
+                    Kirim Data / Simulasi
+                  </div>
+                  <p className="mt-1 text-xs text-slate-600 dark:text-slate-400">
+                    Salin Device Key atau klik tombol Kirim Data Uji langsung dari browser.
+                  </p>
+                </div>
+
+                <div className="rounded-xl border border-slate-200 bg-slate-50/70 p-3.5 dark:border-slate-800 dark:bg-[#0d1318]">
+                  <div className="mono text-xs font-bold text-emerald-700 dark:text-emerald-400">
+                    LANGKAH 03
+                  </div>
+                  <div className="mt-1 text-sm font-bold text-slate-900 dark:text-slate-100">
+                    Pantau Real-Time
+                  </div>
+                  <p className="mt-1 text-xs text-slate-600 dark:text-slate-400">
+                    Lihat grafik 24 jam, unduh CSV, dan terima alert baterai/offline otomatis.
+                  </p>
+                </div>
+              </div>
+
               {user.role === 'admin' && (
-                <div className="mt-5">
+                <div className="mt-6 flex flex-wrap items-center gap-3">
                   <Link
-                    to="/devices/manage"
-                    className="inline-flex min-h-[44px] items-center gap-2 rounded-xl bg-emerald-700 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-emerald-800 dark:bg-emerald-400 dark:text-emerald-950"
+                    to="/devices/manage?new=1"
+                    className="inline-flex min-h-[44px] items-center gap-2 rounded-xl bg-emerald-700 px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-emerald-800 dark:bg-emerald-400 dark:text-emerald-950"
                   >
                     <Plus size={16} aria-hidden="true" />
-                    <span>Daftarkan Node Pertama</span>
+                    <span>Mulai Langkah 1: Buat Node Pertama</span>
                   </Link>
                 </div>
               )}
@@ -170,6 +224,67 @@ export function OverviewPage({
         </Card>
       ) : (
         <div className="space-y-6">
+          {/* Actionable Alert Triage Strip if there are open alerts */}
+          {openAlerts.length > 0 && (
+            <Card className="border-amber-300/90 dark:border-amber-800/80">
+              <CardHeader
+                title={`Perlu Tindak Lanjut: ${openAlerts.length} Alert Terbuka`}
+                description="Klik node untuk memeriksa grafik atau langsung tandai ditangani."
+                action={
+                  <Link
+                    to="/alerts"
+                    className="text-xs font-semibold text-emerald-700 hover:underline dark:text-emerald-300"
+                  >
+                    Buka Pusat Alert
+                  </Link>
+                }
+              />
+              <CardBody className="divide-y divide-slate-100 p-0 dark:divide-slate-800">
+                {openAlerts.slice(0, 3).map((a) => (
+                  <div
+                    key={a.id}
+                    className="flex flex-wrap items-center justify-between gap-3 px-5 py-3 text-sm"
+                  >
+                    <div className="flex min-w-0 items-center gap-3">
+                      <StatusBadge status="open" label={a.type} />
+                      <div className="min-w-0">
+                        <Link
+                          to={`/devices/${a.device_id}`}
+                          className="font-bold text-slate-900 hover:underline dark:text-slate-100"
+                        >
+                          {a.device_code} - {a.device_name}
+                        </Link>
+                        <div className="text-xs text-slate-600 dark:text-slate-400">
+                          Metrik: <span className="mono">{a.metric || '-'}</span> (Nilai:{' '}
+                          <span className="mono">{a.value ?? '-'}</span>, Batas:{' '}
+                          <span className="mono">{a.threshold ?? '-'}</span>)
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <Link
+                        to={`/devices/${a.device_id}`}
+                        className="inline-flex min-h-[38px] items-center rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
+                      >
+                        Periksa Node
+                      </Link>
+                      <Button
+                        variant="secondary"
+                        size="sm"
+                        disabled={ackingId === a.id}
+                        onClick={() => void handleQuickAck(a.id)}
+                        icon={<CheckCircle2 size={14} aria-hidden="true" />}
+                      >
+                        {ackingId === a.id ? 'Menyimpan...' : 'Tandai Ditangani'}
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </CardBody>
+            </Card>
+          )}
+
           <Card className="overflow-hidden">
             <div className="grid grid-cols-1 lg:grid-cols-12">
               <div className="relative min-h-[170px] lg:col-span-4">
@@ -180,7 +295,7 @@ export function OverviewPage({
                 />
                 <div
                   aria-hidden="true"
-                  className="absolute inset-0 bg-gradient-to-r from-slate-950/75 via-slate-950/40 to-transparent"
+                  className="absolute inset-0 bg-gradient-to-r from-slate-950/80 via-slate-950/45 to-transparent"
                 />
                 <div className="absolute bottom-4 left-5 right-5 text-white">
                   <div className="text-xs font-semibold uppercase tracking-wider text-emerald-300">
@@ -285,8 +400,8 @@ export function OverviewPage({
 
             <Card className="xl:col-span-5">
               <CardHeader
-                title="Status Node Lapangan"
-                description={`Menampilkan ${filteredDevices.length} dari ${devices.length} node.`}
+                title="Daftar Node Lapangan"
+                description={`Menampilkan ${filteredDevices.length} dari ${devices.length} node. Klik untuk membuka grafik.`}
               />
               <CardBody className="space-y-4">
                 <div className="flex flex-wrap items-center gap-2.5">

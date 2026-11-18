@@ -1,17 +1,18 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
-import { Download } from 'lucide-react';
+import { Link, useNavigate, useParams } from 'react-router-dom';
+import { Download, Sliders } from 'lucide-react';
 import { TimeSeriesChart, type ChartSeries } from '../components/TimeSeriesChart';
 import {
   Card,
   CardBody,
   CardHeader,
   PageHeader,
+  Select,
   StateBox,
   StatusBadge,
 } from '../components/ui';
 import { apiFetch, ApiError, fmtNum, formatRelativeTime, formatWib } from '../lib/api';
-import type { AlertItem, DeviceSummary, PowerReading, SensorReading } from '../types';
+import type { AlertItem, AuthUser, DeviceSummary, PowerReading, SensorReading } from '../types';
 
 type RangeKey = '24h' | '7d' | '30d';
 
@@ -22,8 +23,17 @@ function rangeDates(key: RangeKey): { from: string; to: string } {
   return { from: from.toISOString(), to: to.toISOString() };
 }
 
-export function DeviceDetailPage({ refreshToken }: { refreshToken: number }) {
+export function DeviceDetailPage({
+  user,
+  devices,
+  refreshToken,
+}: {
+  user: AuthUser;
+  devices: DeviceSummary[];
+  refreshToken: number;
+}) {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
   const [range, setRange] = useState<RangeKey>('24h');
   const [device, setDevice] = useState<DeviceSummary | null>(null);
   const [sensorRows, setSensorRows] = useState<SensorReading[]>([]);
@@ -174,11 +184,25 @@ export function DeviceDetailPage({ refreshToken }: { refreshToken: number }) {
               to="/"
               className="text-sm font-semibold text-emerald-700 hover:underline dark:text-emerald-300"
             >
-              Ringkasan
+              Peta & Ringkasan
             </Link>
             <span className="text-slate-400">/</span>
             <StatusBadge status="neutral" withDot={false} label={device.code} className="mono" />
             <StatusBadge status={device.status} label={statusLabel} />
+            {devices.length > 1 && (
+              <Select
+                aria-label="Pindah ke node lain"
+                value={device.id}
+                onChange={(e) => navigate(`/devices/${e.target.value}`)}
+                className="ml-1 min-h-[34px] w-auto py-1 text-xs"
+              >
+                {devices.map((d) => (
+                  <option key={d.id} value={d.id}>
+                    Pindah: {d.code} - {d.name}
+                  </option>
+                ))}
+              </Select>
+            )}
           </>
         }
         title={device.name}
@@ -220,9 +244,37 @@ export function DeviceDetailPage({ refreshToken }: { refreshToken: number }) {
               <Download size={15} aria-hidden="true" />
               <span>CSV Daya</span>
             </a>
+
+            {user.role === 'admin' && (
+              <Link
+                to={`/devices/manage?edit=${encodeURIComponent(device.id)}`}
+                className="inline-flex min-h-[44px] items-center gap-2 rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-sm font-semibold text-slate-800 shadow-sm hover:bg-slate-50 dark:border-slate-700 dark:bg-[#161f27] dark:text-slate-100 dark:hover:bg-slate-800"
+              >
+                <Sliders size={15} aria-hidden="true" />
+                <span>Konfigurasi Node</span>
+              </Link>
+            )}
           </>
         }
       />
+
+      {!device.last_seen && (
+        <StateBox
+          tone="neutral"
+          title="Node ini belum mengirim data telemetri perdana"
+          description="Gunakan X-Device-Key perangkat ini untuk mengirim data ke POST /api/v1/ingest, atau buat Device Key baru di halaman Kelola Node untuk menguji kiriman data secara instan."
+          action={
+            user.role === 'admin' ? (
+              <Link
+                to="/devices/manage"
+                className="inline-flex min-h-[40px] items-center gap-2 rounded-xl bg-emerald-700 px-4 py-2 text-xs font-semibold text-white hover:bg-emerald-800 dark:bg-emerald-400 dark:text-emerald-950"
+              >
+                Buka Kelola Node & Uji Kirim Data
+              </Link>
+            ) : undefined
+          }
+        />
+      )}
 
       <Card className="overflow-hidden">
         <div className="grid grid-cols-1 md:grid-cols-12">

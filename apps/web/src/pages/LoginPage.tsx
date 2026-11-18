@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react';
-import { Eye, EyeOff, Moon, Radio, ShieldCheck, Sun, Zap } from 'lucide-react';
+import { Eye, EyeOff, Moon, Radio, Sun } from 'lucide-react';
 import { Button, Field, Input, StateBox, StatusBadge } from '../components/ui';
 import { apiFetch, ApiError } from '../lib/api';
 import type { AuthUser } from '../types';
@@ -35,63 +35,46 @@ export function LoginPage({ onSuccess, theme, onToggleTheme }: LoginPageProps) {
   }
 
   return (
-    <div className="grid min-h-[100dvh] bg-[#f6f8fa] dark:bg-[#090d11] lg:grid-cols-2">
-      <aside className="relative hidden flex-col justify-between overflow-hidden bg-[#0f1c16] p-12 text-slate-50 lg:flex">
+    <div className="grid min-h-[100dvh] bg-[#f6f8fa] dark:bg-[#090d11] lg:grid-cols-12">
+      <aside className="relative hidden overflow-hidden bg-slate-950 lg:col-span-7 lg:flex lg:flex-col lg:justify-between lg:p-10">
         <img
           src="/images/agri-solar.jpg"
-          alt="Instalasi panel surya di lahan pertanian"
-          className="pointer-events-none absolute inset-0 h-full w-full object-cover opacity-30"
+          alt="Panel surya dan lahan pertanian Actia Telemetry"
+          className="absolute inset-0 h-full w-full object-cover"
         />
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute inset-0 bg-gradient-to-br from-[#0b1913]/95 via-[#0f241b]/88 to-[#09130e]/95"
+          className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-950/25 to-slate-950/40"
         />
-        <div className="relative z-10">
-          <div className="flex items-center gap-3">
-            <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-400 text-emerald-950">
-              <Radio size={22} aria-hidden="true" />
-            </span>
-            <div>
-              <div className="text-base font-bold tracking-tight text-white">Actia Telemetry</div>
-              <div className="text-xs text-slate-400">Field Monitoring Console</div>
-            </div>
-          </div>
 
-          <h1 className="mt-12 max-w-md text-3xl font-bold leading-tight tracking-tight text-white">
-            Konsol pemantauan sensor tanah dan daya surya lapangan.
-          </h1>
-          <p className="mt-4 max-w-md text-sm leading-relaxed text-slate-300">
-            Pantau sebaran node pada peta, kondisi kelembapan & pH tanah, kesehatan aki surya,
-            peringatan otomatis, serta ekspor riwayat data TimescaleDB.
-          </p>
-
-          <div className="mt-10 grid gap-3.5">
-            <div className="flex items-start gap-3.5 rounded-2xl border border-emerald-900/60 bg-[#152820] p-4">
-              <Zap size={18} className="mt-0.5 shrink-0 text-emerald-400" aria-hidden="true" />
-              <div>
-                <div className="text-sm font-semibold text-white">Aliran Data Real-Time (SSE)</div>
-                <div className="mt-0.5 text-xs text-slate-300">
-                  Setiap kiriman telemetri node langsung memperbarui status dan grafik tanpa muat ulang manual.
-                </div>
-              </div>
-            </div>
-
-            <div className="flex items-start gap-3.5 rounded-2xl border border-emerald-900/60 bg-[#152820] p-4">
-              <ShieldCheck size={18} className="mt-0.5 shrink-0 text-emerald-400" aria-hidden="true" />
-              <div>
-                <div className="text-sm font-semibold text-white">Deteksi Dini Aki & Node Offline</div>
-                <div className="mt-0.5 text-xs text-slate-300">
-                  Evaluasi ambang batas otomatis per perangkat disertai pelacakan penanganan alert oleh operator.
-                </div>
-              </div>
-            </div>
-          </div>
+        <div className="relative z-10 flex items-center gap-3">
+          <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-400 text-emerald-950 shadow-sm">
+            <Radio size={20} aria-hidden="true" />
+          </span>
+          <span className="rounded-lg bg-slate-950/65 px-3 py-1.5 text-sm font-bold tracking-tight text-white backdrop-blur-sm">
+            Actia Telemetry
+          </span>
         </div>
 
-        <div className="relative z-10 text-xs text-slate-300">Actia Telemetry Console</div>
+        <div className="relative z-10 max-w-lg">
+          <h1 className="text-3xl font-bold leading-snug tracking-tight text-white">
+            Monitoring Sensor Tanah & Daya Surya
+          </h1>
+          <div className="mt-4 flex flex-wrap gap-2">
+            <span className="rounded-full border border-white/20 bg-slate-950/65 px-3.5 py-1.5 text-xs font-semibold text-emerald-300 backdrop-blur-sm">
+              Kelembapan & pH Tanah
+            </span>
+            <span className="rounded-full border border-white/20 bg-slate-950/65 px-3.5 py-1.5 text-xs font-semibold text-emerald-300 backdrop-blur-sm">
+              Tegangan Solar & Aki
+            </span>
+            <span className="rounded-full border border-white/20 bg-slate-950/65 px-3.5 py-1.5 text-xs font-semibold text-emerald-300 backdrop-blur-sm">
+              Peta & Alert Real-Time
+            </span>
+          </div>
+        </div>
       </aside>
 
-      <main className="relative flex flex-col items-center justify-center p-6 sm:p-10">
+      <main className="relative flex flex-col items-center justify-center p-6 sm:p-10 lg:col-span-5">
         <div className="absolute right-5 top-5">
           <Button
             variant="secondary"
@@ -106,7 +89,7 @@ export function LoginPage({ onSuccess, theme, onToggleTheme }: LoginPageProps) {
 
         <section
           aria-labelledby="login-title"
-          className="w-full max-w-[420px] rounded-2xl border border-slate-200/90 bg-white p-7 shadow-card dark:border-slate-800 dark:bg-[#11171d] dark:shadow-card-dark sm:p-8"
+          className="w-full max-w-[400px] rounded-2xl border border-slate-200/90 bg-white p-7 shadow-card dark:border-slate-800 dark:bg-[#11171d] dark:shadow-card-dark sm:p-8"
         >
           <div className="mb-6">
             <StatusBadge status="online" label="Actia Telemetry" />

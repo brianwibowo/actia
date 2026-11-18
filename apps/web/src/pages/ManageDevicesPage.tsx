@@ -1,6 +1,6 @@
-import { useState, type FormEvent } from 'react';
-import { Link } from 'react-router-dom';
-import { Check, Copy, Plus } from 'lucide-react';
+import { useEffect, useState, type FormEvent } from 'react';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { Check, Copy, ExternalLink, Plus, Send } from 'lucide-react';
 import { NodeMap } from '../components/NodeMap';
 import {
   Button,
@@ -12,6 +12,7 @@ import {
   Modal,
   PageHeader,
   StateBox,
+  StatusBadge,
 } from '../components/ui';
 import { apiFetch, ApiError } from '../lib/api';
 import type { DeviceSummary } from '../types';
@@ -46,13 +47,22 @@ const emptyForm: FormState = {
 };
 
 export function ManageDevicesPage({ devices, onChanged }: ManageDevicesPageProps) {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const navigate = useNavigate();
+
   const [modalOpen, setModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState<FormState>(emptyForm);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
-  const [revealedKey, setRevealedKey] = useState<{ code: string; key: string } | null>(null);
+  const [revealedKey, setRevealedKey] = useState<{
+    id: string;
+    code: string;
+    key: string;
+  } | null>(null);
   const [copied, setCopied] = useState(false);
+  const [sendingTest, setSendingTest] = useState(false);
+  const [testSent, setTestSent] = useState(false);
 
   function openCreate() {
     setEditingId(null);
@@ -77,6 +87,26 @@ export function ManageDevicesPage({ devices, onChanged }: ManageDevicesPageProps
     setError('');
     setModalOpen(true);
   }
+
+  useEffect(() => {
+    if (searchParams.get('new') === '1') {
+      openCreate();
+      const next = new URLSearchParams(searchParams);
+      next.delete('new');
+      setSearchParams(next, { replace: true });
+      return;
+    }
+    const editId = searchParams.get('edit');
+    if (editId && devices.length > 0) {
+      const target = devices.find((d) => d.id === editId);
+      if (target) {
+        openEdit(target);
+        const next = new URLSearchParams(searchParams);
+        next.delete('edit');
+        setSearchParams(next, { replace: true });
+      }
+    }
+  }, [searchParams, devices, setSearchParams]);
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -110,8 +140,13 @@ export function ManageDevicesPage({ devices, onChanged }: ManageDevicesPageProps
             body: JSON.stringify(payload),
           },
         );
-        setRevealedKey({ code: res.device.code, key: res.device_key });
+        setRevealedKey({
+          id: res.device.id,
+          code: res.device.code,
+          key: res.device_key,
+        });
         setCopied(false);
+        setTestSent(false);
       }
       setModalOpen(false);
       onChanged();
@@ -130,8 +165,9 @@ export function ManageDevicesPage({ devices, onChanged }: ManageDevicesPageProps
       const res = await apiFetch<{ device_key: string }>(`/api/v1/devices/${d.id}/rotate-key`, {
         method: 'POST',
       });
-      setRevealedKey({ code: d.code, key: res.device_key });
+      setRevealedKey({ id: d.id, code: d.code, key: res.device_key });
       setCopied(false);
+      setTestSent(false);
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Gagal memutar device key');
     }
@@ -154,14 +190,51 @@ export function ManageDevicesPage({ devices, onChanged }: ManageDevicesPageProps
     setCopied(true);
   }
 
+  async function sendSampleReading() {
+    if (!revealedKey) return;
+    setSendingTest(true);
+    setError('');
+    try {
+      await apiFetch('/api/v1/ingest', {
+        method: 'POST',
+        headers: {
+          'x-device-key': revealedKey.key,
+        },
+        body: JSON.stringify({
+          sensor: {
+            temperature_c: 29.4,
+            soil_moisture_pct: 46.5,
+            soil_temp_c: 26.8,
+            ec: 820,
+            ph: 6.5,
+          },
+          power: {
+            solar_voltage_v: 18.4,
+            solar_current_a: 1.12,
+            battery_voltage_v: 12.7,
+            battery_current_a: 0.62,
+            power_w: 20.6,
+            battery_pct: 86,
+          },
+        }),
+      });
+      setTestSent(true);
+      onChanged();
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : 'Gagal mengirim data uji');
+    } finally {
+      setSendingTest(false);
+    }
+  }
+
   const parsedLat = form.lat.trim() === '' ? null : Number(form.lat);
   const parsedLng = form.lng.trim() === '' ? null : Number(form.lng);
 
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Kelola Node"
-        subtitle="Daftarkan perangkat lapangan, atur lokasi peta, batas alert, dan device key."
+        title="Kelola Node & Device Key"
+        subtitle="Daftarkan perangkat lapangan, atur lokasi peta, batas alert, dan uji pengiriman data telemetri."
         actions={
           <Button
             variant="primary"
@@ -176,23 +249,55 @@ export function ManageDevicesPage({ devices, onChanged }: ManageDevicesPageProps
       {revealedKey && (
         <StateBox
           tone="success"
-          title={`Device Key untuk ${revealedKey.code} (tampil satu kali)`}
-          description="Simpan key ini di firmware atau konfigurasi node. Key tidak dapat dilihat lagi setelah pesan ini ditutup."
+          title={`Langkah Selanjutnya: Simpan Device Key untuk ${revealedKey.code}`}
+          description="Simpan key ini di firmware node. Anda juga dapat langsung mengirim 1 data uji perdana agar node ini langsung berstatus Online dan grafiknya terisi."
           action={
             <div className="space-y-3">
               <pre className="mono overflow-x-auto rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-xs text-slate-900 dark:border-slate-700 dark:bg-[#0e141a] dark:text-slate-100">
                 {revealedKey.key}
               </pre>
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap items-center gap-2">
                 <Button
                   variant="primary"
                   size="sm"
                   onClick={() => void copyKey(revealedKey.key)}
-                  icon={copied ? <Check size={15} aria-hidden="true" /> : <Copy size={15} aria-hidden="true" />}
+                  icon={
+                    copied ? (
+                      <Check size={15} aria-hidden="true" />
+                    ) : (
+                      <Copy size={15} aria-hidden="true" />
+                    )
+                  }
                 >
-                  {copied ? 'Tersalin' : 'Salin Key'}
+                  {copied ? 'Key Tersalin' : '1. Salin Device Key'}
                 </Button>
-                <Button variant="secondary" size="sm" onClick={() => setRevealedKey(null)}>
+
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  disabled={sendingTest}
+                  onClick={() => void sendSampleReading()}
+                  icon={<Send size={15} aria-hidden="true" />}
+                >
+                  {sendingTest
+                    ? 'Mengirim...'
+                    : testSent
+                      ? 'Data Uji Terkirim (Kirim Lagi)'
+                      : '2. Kirim Data Uji Perdana'}
+                </Button>
+
+                {testSent && (
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    onClick={() => navigate(`/devices/${revealedKey.id}`)}
+                    icon={<ExternalLink size={15} aria-hidden="true" />}
+                  >
+                    3. Buka Grafik Node {revealedKey.code}
+                  </Button>
+                )}
+
+                <Button variant="ghost" size="sm" onClick={() => setRevealedKey(null)}>
                   Tutup
                 </Button>
               </div>
@@ -222,6 +327,7 @@ export function ManageDevicesPage({ devices, onChanged }: ManageDevicesPageProps
                 <thead>
                   <tr className="border-b border-slate-200 bg-slate-50 text-xs font-semibold text-slate-600 dark:border-slate-800 dark:bg-[#0d1318] dark:text-slate-400">
                     <th className="px-5 py-3.5">Kode & Nama</th>
+                    <th className="px-5 py-3.5">Status</th>
                     <th className="px-5 py-3.5">Lokasi</th>
                     <th className="px-5 py-3.5">Interval</th>
                     <th className="px-5 py-3.5">Batas Aki</th>
@@ -242,6 +348,18 @@ export function ManageDevicesPage({ devices, onChanged }: ManageDevicesPageProps
                         <div className="font-medium text-slate-900 dark:text-slate-100">{d.name}</div>
                       </td>
                       <td className="px-5 py-3.5">
+                        <StatusBadge
+                          status={d.status}
+                          label={
+                            d.status === 'online'
+                              ? 'Online'
+                              : d.status === 'maintenance'
+                                ? 'Pemeliharaan'
+                                : 'Offline'
+                          }
+                        />
+                      </td>
+                      <td className="px-5 py-3.5">
                         <div className="text-slate-800 dark:text-slate-200">{d.location || '-'}</div>
                         <div className="mono text-xs text-slate-500 dark:text-slate-400">
                           {d.lat !== null && d.lng !== null ? `${d.lat}, ${d.lng}` : 'Tanpa koordinat'}
@@ -254,6 +372,12 @@ export function ManageDevicesPage({ devices, onChanged }: ManageDevicesPageProps
                       <td className="mono px-5 py-3.5 text-xs">{d.offline_after_s ?? 900}s</td>
                       <td className="px-5 py-3.5">
                         <div className="flex flex-wrap gap-2">
+                          <Link
+                            to={`/devices/${d.id}`}
+                            className="inline-flex min-h-[44px] items-center rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-sm font-semibold text-slate-800 hover:bg-slate-50 dark:border-slate-700 dark:bg-[#161f27] dark:text-slate-100 dark:hover:bg-slate-800"
+                          >
+                            Grafik
+                          </Link>
                           <Button variant="secondary" size="sm" onClick={() => openEdit(d)}>
                             Ubah
                           </Button>

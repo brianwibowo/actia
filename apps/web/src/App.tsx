@@ -127,6 +127,7 @@ export function App() {
     <BrowserRouter>
       <AppShell
         user={user}
+        devices={devices}
         openAlertsCount={openAlerts.length}
         streamConnected={streamConnected}
         theme={theme}
@@ -149,12 +150,19 @@ export function App() {
                 loading={dataLoading}
                 error={dataError}
                 onRetry={() => void refreshOverview()}
+                onChanged={() => void refreshOverview()}
               />
             }
           />
           <Route
             path="/devices/:id"
-            element={<DeviceDetailPage refreshToken={refreshToken} />}
+            element={
+              <DeviceDetailPage
+                user={user}
+                devices={devices}
+                refreshToken={refreshToken}
+              />
+            }
           />
           <Route
             path="/alerts"
