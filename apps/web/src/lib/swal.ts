@@ -20,10 +20,10 @@ export function swalToast(
     title,
     text,
     showConfirmButton: false,
-    timer: 3200,
+    timer: 2400,
     timerProgressBar: true,
-    background: dark ? '#0f222a' : '#ffffff',
-    color: dark ? '#f1f5f9' : '#0f172a',
+    background: dark ? '#0e2029' : '#ffffff',
+    color: dark ? '#f1f7f9' : '#0d242c',
     iconColor:
       icon === 'success'
         ? '#2BBBD7'
@@ -52,8 +52,8 @@ export async function swalConfirm(options: {
     cancelButtonText: options.cancelText ?? 'Batal',
     confirmButtonColor: options.destructive ? '#dc2626' : '#218DAE',
     cancelButtonColor: dark ? '#334155' : '#64748b',
-    background: dark ? '#0f222a' : '#ffffff',
-    color: dark ? '#f1f5f9' : '#0f172a',
+    background: dark ? '#0e2029' : '#ffffff',
+    color: dark ? '#f1f7f9' : '#0d242c',
     reverseButtons: true,
   })
   return Boolean(res.isConfirmed)
