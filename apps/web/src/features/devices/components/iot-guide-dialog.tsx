@@ -1,4 +1,4 @@
-import { Copy, Terminal } from 'lucide-react'
+\import { Copy, Download, Terminal } from 'lucide-react'
 import { swalToast } from '@/lib/swal'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -123,10 +123,27 @@ print(res.status_code, res.json())`
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className='max-h-[90svh] overflow-y-auto sm:max-w-2xl'>
         <DialogHeader>
-          <DialogTitle className='flex items-center gap-2'>
-            <Terminal className='size-5 text-primary' />
-            Panduan Integrasi API IoT (Firmware / Gateway)
-          </DialogTitle>
+          <div className='flex flex-wrap items-center justify-between gap-2 pe-6'>
+            <DialogTitle className='flex items-center gap-2'>
+              <Terminal className='size-5 text-primary' />
+              Panduan Integrasi API IoT (Firmware / Gateway)
+            </DialogTitle>
+            <Button
+              size='sm'
+              asChild
+              onClick={() =>
+                swalToast('success', 'Mengunduh PDF Panduan API IoT...')
+              }
+            >
+              <a
+                href='/Panduan-API-IoT-Actia-Telemetry.pdf'
+                download='Panduan-API-IoT-Actia-Telemetry.pdf'
+              >
+                <Download className='size-4' />
+                Unduh PDF
+              </a>
+            </Button>
+          </div>
           <DialogDescription>
             Gunakan endpoint HTTP POST berikut untuk mengirim pembacaan sensor
             tanah dan daya surya dari ESP32, Raspberry Pi, atau gateway LoRa.
