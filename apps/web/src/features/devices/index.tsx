@@ -7,6 +7,7 @@ import {
   MapPin,
   Plus,
   Table2,
+  Terminal,
   Trash2,
   X,
 } from 'lucide-react'
@@ -43,6 +44,7 @@ import {
 import { DevicesGrid } from './components/devices-grid'
 import { DevicesKpiCards } from './components/devices-kpi-cards'
 import { DevicesTable } from './components/devices-table'
+import { IotGuideDialog } from './components/iot-guide-dialog'
 import {
   emptyDeviceForm,
   type DeviceFormState,
@@ -75,6 +77,7 @@ export function ManageDevicesPage({
   const [error, setError] = useState('')
   const [revealedKey, setRevealedKey] = useState<RevealedDeviceKey | null>(null)
   const [seedBusy, setSeedBusy] = useState(false)
+  const [guideOpen, setGuideOpen] = useState(false)
 
   const hasSeedDevices = devices.some((d) =>
     ['ACT-01', 'ACT-02', 'ACT-03', 'ACT-04', 'ACT-05'].includes(d.code)
@@ -304,35 +307,45 @@ export function ManageDevicesPage({
               dan konfigurasi Device Key.
             </p>
           </div>
-          {isAdmin && (
-            <div className='flex flex-wrap items-center gap-2'>
-              {hasSeedDevices ? (
-                <Button
-                  variant='outline'
-                  size='sm'
-                  disabled={seedBusy}
-                  onClick={() => void handleClearDemo()}
-                >
-                  <Trash2 className='size-4 text-destructive' />
-                  {seedBusy ? 'Memproses...' : 'Hapus Data Seed'}
+          <div className='flex flex-wrap items-center gap-2'>
+            <Button
+              variant='outline'
+              size='sm'
+              onClick={() => setGuideOpen(true)}
+            >
+              <Terminal className='size-4' />
+              Panduan API IoT
+            </Button>
+            {isAdmin && (
+              <>
+                {hasSeedDevices ? (
+                  <Button
+                    variant='outline'
+                    size='sm'
+                    disabled={seedBusy}
+                    onClick={() => void handleClearDemo()}
+                  >
+                    <Trash2 className='size-4 text-destructive' />
+                    {seedBusy ? 'Memproses...' : 'Hapus Data Seed'}
+                  </Button>
+                ) : (
+                  <Button
+                    variant='outline'
+                    size='sm'
+                    disabled={seedBusy}
+                    onClick={() => void handleSeedDemo()}
+                  >
+                    <Database className='size-4' />
+                    {seedBusy ? 'Mengisi...' : 'Isi Data Seed'}
+                  </Button>
+                )}
+                <Button size='sm' onClick={openCreate}>
+                  <Plus className='size-4' />
+                  Tambah Perangkat
                 </Button>
-              ) : (
-                <Button
-                  variant='outline'
-                  size='sm'
-                  disabled={seedBusy}
-                  onClick={() => void handleSeedDemo()}
-                >
-                  <Database className='size-4' />
-                  {seedBusy ? 'Mengisi...' : 'Isi Data Seed'}
-                </Button>
-              )}
-              <Button size='sm' onClick={openCreate}>
-                <Plus className='size-4' />
-                Tambah Perangkat
-              </Button>
-            </div>
-          )}
+              </>
+            )}
+          </div>
         </div>
 
         <DevicesKpiCards devices={devices} />
@@ -483,6 +496,12 @@ export function ManageDevicesPage({
         saving={saving}
         error={error}
         onSubmit={(e) => void handleSubmit(e)}
+      />
+
+      <IotGuideDialog
+        open={guideOpen}
+        onOpenChange={setGuideOpen}
+        sampleKey={revealedKey?.key}
       />
     </>
   )
