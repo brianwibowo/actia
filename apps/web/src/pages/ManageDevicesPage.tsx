@@ -233,15 +233,15 @@ export function ManageDevicesPage({ devices, onChanged }: ManageDevicesPageProps
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Kelola Node & Device Key"
-        subtitle="Daftarkan perangkat lapangan, atur lokasi peta, batas alert, dan uji pengiriman data telemetri."
+        title="Perangkat"
+        subtitle="Kelola perangkat lapangan, lokasi peta, dan Device Key."
         actions={
           <Button
             variant="primary"
             onClick={openCreate}
             icon={<Plus size={17} aria-hidden="true" />}
           >
-            Tambah Node Baru
+            Tambah Perangkat
           </Button>
         }
       />

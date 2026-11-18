@@ -77,8 +77,8 @@ export function AlertsPage({
   return (
     <>
       <PageHeader
-        title="Daftar Alert"
-        subtitle="Pantau kondisi aki lemah, pembacaan sensor di luar rentang, dan node offline."
+        title="Peringatan"
+        subtitle="Riwayat peringatan baterai, sensor, dan perangkat offline."
         actions={
           <>
             <Select

@@ -3,7 +3,6 @@ import { Link, useNavigate } from 'react-router-dom';
 import {
   AlertTriangle,
   BatteryCharging,
-  CheckCircle2,
   ChevronRight,
   Cpu,
   Plus,
@@ -24,7 +23,7 @@ import {
   StateBox,
   StatusBadge,
 } from '../components/ui';
-import { apiFetch, fmtNum, formatRelativeTime } from '../lib/api';
+import { fmtNum, formatRelativeTime } from '../lib/api';
 import type { AlertItem, AuthUser, DeviceSummary } from '../types';
 
 interface OverviewPageProps {
@@ -46,12 +45,10 @@ export function OverviewPage({
   loading,
   error,
   onRetry,
-  onChanged,
 }: OverviewPageProps) {
   const navigate = useNavigate();
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
-  const [ackingId, setAckingId] = useState<number | null>(null);
 
   const onlineCount = devices.filter((d) => d.status === 'online').length;
   const offlineCount = devices.filter((d) => d.status === 'offline').length;
@@ -82,21 +79,11 @@ export function OverviewPage({
     });
   }, [devices, search, statusFilter]);
 
-  async function handleQuickAck(alertId: number) {
-    setAckingId(alertId);
-    try {
-      await apiFetch(`/api/v1/alerts/${alertId}`, { method: 'PATCH' });
-      onChanged();
-    } finally {
-      setAckingId(null);
-    }
-  }
-
   return (
     <>
       <PageHeader
-        title="Peta & Ringkasan Jaringan"
-        subtitle="Pantau kondisi sensor tanah, daya surya, dan tindak lanjuti peringatan aktif dari satu layar."
+        title="Overview"
+        subtitle="Pantauan real-time perangkat sensor tanah dan daya surya."
         actions={
           <>
             <Button
@@ -113,7 +100,7 @@ export function OverviewPage({
                 className="inline-flex min-h-[44px] items-center gap-2 rounded-xl bg-emerald-700 px-4 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-emerald-800 dark:bg-emerald-400 dark:text-emerald-950 dark:hover:bg-emerald-300"
               >
                 <Plus size={16} aria-hidden="true" />
-                <span>Tambah Node Baru</span>
+                <span>Tambah Perangkat</span>
               </Link>
             )}
           </>
@@ -124,14 +111,14 @@ export function OverviewPage({
         <StateBox
           tone="loading"
           role="status"
-          title="Memuat data perangkat..."
-          description="Mengambil pembacaan terakhir dari server Actia Telemetry."
+          title="Memuat data..."
+          description="Mengambil pembacaan terakhir dari server."
         />
       ) : error ? (
         <StateBox
           tone="error"
           role="alert"
-          title="Gagal memuat ringkasan"
+          title="Gagal memuat data"
           description={error}
           action={
             <Button variant="secondary" size="sm" onClick={onRetry}>
@@ -141,81 +128,31 @@ export function OverviewPage({
         />
       ) : devices.length === 0 ? (
         <Card className="overflow-hidden">
-          <div className="grid grid-cols-1 lg:grid-cols-12">
-            <div className="relative min-h-[240px] lg:col-span-5">
+          <div className="grid grid-cols-1 md:grid-cols-12">
+            <div className="relative min-h-[240px] md:col-span-5">
               <img
                 src="/images/weather-station.jpg"
-                alt="Stasiun pemantauan telemetri lapangan bertenaga surya"
+                alt="Stasiun sensor lapangan"
                 className="h-full w-full object-cover"
               />
-              <div
-                aria-hidden="true"
-                className="absolute inset-0 bg-gradient-to-t from-slate-950/85 via-slate-950/35 to-transparent"
-              />
-              <div className="absolute bottom-5 left-5 right-5 text-white">
-                <div className="text-xs font-semibold uppercase tracking-wider text-emerald-300">
-                  Mulai Cepat Actia Telemetry
-                </div>
-                <div className="mt-1 text-lg font-bold">
-                  3 Langkah Menghubungkan Node Lapangan
-                </div>
-              </div>
             </div>
 
-            <div className="flex flex-col justify-center p-6 lg:col-span-7 sm:p-8">
+            <div className="flex flex-col justify-center p-6 md:col-span-7 sm:p-8">
               <h2 className="text-xl font-bold tracking-tight text-slate-900 dark:text-slate-100">
-                Belum ada node terdaftar di jaringan
+                Belum ada perangkat terdaftar
               </h2>
               <p className="mt-1.5 text-sm text-slate-600 dark:text-slate-400">
-                Ikuti alur berikut untuk mulai memantau kelembapan tanah, pH, EC, dan daya panel surya:
+                Tambahkan perangkat pertama untuk mendapatkan Device Key dan mulai memantau data sensor.
               </p>
 
-              <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-3">
-                <div className="rounded-xl border border-slate-200 bg-slate-50/70 p-3.5 dark:border-slate-800 dark:bg-[#0d1318]">
-                  <div className="mono text-xs font-bold text-emerald-700 dark:text-emerald-400">
-                    LANGKAH 01
-                  </div>
-                  <div className="mt-1 text-sm font-bold text-slate-900 dark:text-slate-100">
-                    Daftarkan Node
-                  </div>
-                  <p className="mt-1 text-xs text-slate-600 dark:text-slate-400">
-                    Isi kode node, nama blok kebun, dan titik koordinat di peta.
-                  </p>
-                </div>
-
-                <div className="rounded-xl border border-slate-200 bg-slate-50/70 p-3.5 dark:border-slate-800 dark:bg-[#0d1318]">
-                  <div className="mono text-xs font-bold text-emerald-700 dark:text-emerald-400">
-                    LANGKAH 02
-                  </div>
-                  <div className="mt-1 text-sm font-bold text-slate-900 dark:text-slate-100">
-                    Kirim Data / Simulasi
-                  </div>
-                  <p className="mt-1 text-xs text-slate-600 dark:text-slate-400">
-                    Salin Device Key atau klik tombol Kirim Data Uji langsung dari browser.
-                  </p>
-                </div>
-
-                <div className="rounded-xl border border-slate-200 bg-slate-50/70 p-3.5 dark:border-slate-800 dark:bg-[#0d1318]">
-                  <div className="mono text-xs font-bold text-emerald-700 dark:text-emerald-400">
-                    LANGKAH 03
-                  </div>
-                  <div className="mt-1 text-sm font-bold text-slate-900 dark:text-slate-100">
-                    Pantau Real-Time
-                  </div>
-                  <p className="mt-1 text-xs text-slate-600 dark:text-slate-400">
-                    Lihat grafik 24 jam, unduh CSV, dan terima alert baterai/offline otomatis.
-                  </p>
-                </div>
-              </div>
-
               {user.role === 'admin' && (
-                <div className="mt-6 flex flex-wrap items-center gap-3">
+                <div className="mt-5">
                   <Link
                     to="/devices/manage?new=1"
                     className="inline-flex min-h-[44px] items-center gap-2 rounded-xl bg-emerald-700 px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-emerald-800 dark:bg-emerald-400 dark:text-emerald-950"
                   >
                     <Plus size={16} aria-hidden="true" />
-                    <span>Mulai Langkah 1: Buat Node Pertama</span>
+                    <span>Tambah Perangkat</span>
                   </Link>
                 </div>
               )}
@@ -224,216 +161,123 @@ export function OverviewPage({
         </Card>
       ) : (
         <div className="space-y-6">
-          {/* Actionable Alert Triage Strip if there are open alerts */}
-          {openAlerts.length > 0 && (
-            <Card className="border-amber-300/90 dark:border-amber-800/80">
-              <CardHeader
-                title={`Perlu Tindak Lanjut: ${openAlerts.length} Alert Terbuka`}
-                description="Klik node untuk memeriksa grafik atau langsung tandai ditangani."
-                action={
+          <section
+            aria-label="Ringkasan metrik"
+            className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4"
+          >
+            <StatCard
+              label="Total Perangkat"
+              value={devices.length}
+              tone="neutral"
+              icon={<Cpu size={18} aria-hidden="true" />}
+              sublabel={
+                maintenanceCount > 0
+                  ? `${maintenanceCount} pemeliharaan`
+                  : 'Terdaftar'
+              }
+            />
+
+            <StatCard
+              label="Online"
+              value={onlineCount}
+              tone="ok"
+              progressPct={onlinePct}
+              icon={<Wifi size={18} aria-hidden="true" />}
+              sublabel={`${onlinePct}% aktif`}
+            />
+
+            <StatCard
+              label="Rata-rata Baterai"
+              value={avgBatteryPct !== null ? `${avgBatteryPct}%` : '-'}
+              tone={avgBatteryPct !== null && avgBatteryPct <= 25 ? 'danger' : 'ok'}
+              progressPct={avgBatteryPct}
+              icon={<BatteryCharging size={18} aria-hidden="true" />}
+              sublabel={
+                offlineCount > 0 ? (
+                  <span className="inline-flex items-center gap-1 text-red-700 dark:text-red-300">
+                    <WifiOff size={13} aria-hidden="true" />
+                    {offlineCount} offline
+                  </span>
+                ) : (
+                  'Normal'
+                )
+              }
+            />
+
+            <StatCard
+              label="Peringatan Aktif"
+              value={openAlerts.length}
+              tone={openAlerts.length > 0 ? 'warn' : 'ok'}
+              icon={<AlertTriangle size={18} aria-hidden="true" />}
+              sublabel={
+                openAlerts.length > 0 ? (
                   <Link
                     to="/alerts"
-                    className="text-xs font-semibold text-emerald-700 hover:underline dark:text-emerald-300"
+                    className="font-semibold text-emerald-700 hover:underline dark:text-emerald-300"
                   >
-                    Buka Pusat Alert
+                    Lihat peringatan
                   </Link>
-                }
-              />
-              <CardBody className="divide-y divide-slate-100 p-0 dark:divide-slate-800">
-                {openAlerts.slice(0, 3).map((a) => (
-                  <div
-                    key={a.id}
-                    className="flex flex-wrap items-center justify-between gap-3 px-5 py-3 text-sm"
-                  >
-                    <div className="flex min-w-0 items-center gap-3">
-                      <StatusBadge status="open" label={a.type} />
-                      <div className="min-w-0">
-                        <Link
-                          to={`/devices/${a.device_id}`}
-                          className="font-bold text-slate-900 hover:underline dark:text-slate-100"
-                        >
-                          {a.device_code} - {a.device_name}
-                        </Link>
-                        <div className="text-xs text-slate-600 dark:text-slate-400">
-                          Metrik: <span className="mono">{a.metric || '-'}</span> (Nilai:{' '}
-                          <span className="mono">{a.value ?? '-'}</span>, Batas:{' '}
-                          <span className="mono">{a.threshold ?? '-'}</span>)
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-2">
-                      <Link
-                        to={`/devices/${a.device_id}`}
-                        className="inline-flex min-h-[38px] items-center rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
-                      >
-                        Periksa Node
-                      </Link>
-                      <Button
-                        variant="secondary"
-                        size="sm"
-                        disabled={ackingId === a.id}
-                        onClick={() => void handleQuickAck(a.id)}
-                        icon={<CheckCircle2 size={14} aria-hidden="true" />}
-                      >
-                        {ackingId === a.id ? 'Menyimpan...' : 'Tandai Ditangani'}
-                      </Button>
-                    </div>
-                  </div>
-                ))}
-              </CardBody>
-            </Card>
-          )}
-
-          <Card className="overflow-hidden">
-            <div className="grid grid-cols-1 lg:grid-cols-12">
-              <div className="relative min-h-[170px] lg:col-span-4">
-                <img
-                  src="/images/agri-solar.jpg"
-                  alt="Pemantauan lahan pertanian dan panel surya Actia Telemetry"
-                  className="h-full w-full object-cover"
-                />
-                <div
-                  aria-hidden="true"
-                  className="absolute inset-0 bg-gradient-to-r from-slate-950/80 via-slate-950/45 to-transparent"
-                />
-                <div className="absolute bottom-4 left-5 right-5 text-white">
-                  <div className="text-xs font-semibold uppercase tracking-wider text-emerald-300">
-                    Actia Field Network
-                  </div>
-                  <div className="mt-0.5 text-base font-bold">
-                    {onlineCount} dari {devices.length} node aktif
-                  </div>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 gap-4 p-5 sm:grid-cols-2 lg:col-span-8 xl:grid-cols-4">
-                <StatCard
-                  label="Total Node"
-                  value={devices.length}
-                  tone="neutral"
-                  icon={<Cpu size={18} aria-hidden="true" />}
-                  sublabel={
-                    maintenanceCount > 0
-                      ? `${maintenanceCount} dalam pemeliharaan`
-                      : 'Perangkat terdaftar aktif'
-                  }
-                />
-
-                <StatCard
-                  label="Node Online"
-                  value={onlineCount}
-                  tone="ok"
-                  progressPct={onlinePct}
-                  icon={<Wifi size={18} aria-hidden="true" />}
-                  sublabel={`${onlinePct}% terhubung`}
-                />
-
-                <StatCard
-                  label="Rata-rata Baterai"
-                  value={avgBatteryPct !== null ? `${avgBatteryPct}%` : '-'}
-                  tone={avgBatteryPct !== null && avgBatteryPct <= 25 ? 'danger' : 'ok'}
-                  progressPct={avgBatteryPct}
-                  icon={<BatteryCharging size={18} aria-hidden="true" />}
-                  sublabel={
-                    offlineCount > 0 ? (
-                      <span className="inline-flex items-center gap-1 text-red-700 dark:text-red-300">
-                        <WifiOff size={13} aria-hidden="true" />
-                        {offlineCount} node offline
-                      </span>
-                    ) : (
-                      'Semua node terhubung'
-                    )
-                  }
-                />
-
-                <StatCard
-                  label="Alert Terbuka"
-                  value={openAlerts.length}
-                  tone={openAlerts.length > 0 ? 'warn' : 'ok'}
-                  icon={<AlertTriangle size={18} aria-hidden="true" />}
-                  sublabel={
-                    openAlerts.length > 0 ? (
-                      <Link
-                        to="/alerts"
-                        className="font-semibold text-emerald-700 hover:underline dark:text-emerald-300"
-                      >
-                        Tinjau alert terbuka
-                      </Link>
-                    ) : (
-                      'Ambang batas aman'
-                    )
-                  }
-                />
-              </div>
-            </div>
-          </Card>
+                ) : (
+                  'Aman'
+                )
+              }
+            />
+          </section>
 
           <div className="grid grid-cols-1 gap-6 xl:grid-cols-12">
             <Card className="xl:col-span-7">
-              <CardHeader
-                title="Sebaran Node di Peta"
-                description="Klik marker untuk melihat ringkasan, atau klik ganda untuk detail node."
-              />
+              <CardHeader title="Peta Lokasi" />
               <CardBody>
                 {hasGeo ? (
                   <>
                     <NodeMap
                       devices={devices}
-                      height={430}
+                      height={420}
                       onSelectDevice={(id) => navigate(`/devices/${id}`)}
                     />
-                    <div className="mt-4 flex flex-wrap items-center gap-2.5">
+                    <div className="mt-3.5 flex flex-wrap items-center gap-2">
                       <StatusBadge status="online" label="Online" />
-                      <StatusBadge status="maintenance" label="Alert / Pemeliharaan" />
+                      <StatusBadge status="maintenance" label="Peringatan" />
                       <StatusBadge status="offline" label="Offline" />
                     </div>
                   </>
                 ) : (
                   <StateBox
-                    title="Koordinat node belum diisi"
-                    description="Tambahkan latitude dan longitude pada node di menu Kelola Node agar tampil di peta."
+                    title="Koordinat belum diisi"
+                    description="Isi latitude dan longitude perangkat di menu Perangkat untuk menampilkan peta."
                   />
                 )}
               </CardBody>
             </Card>
 
             <Card className="xl:col-span-5">
-              <CardHeader
-                title="Daftar Node Lapangan"
-                description={`Menampilkan ${filteredDevices.length} dari ${devices.length} node. Klik untuk membuka grafik.`}
-              />
+              <CardHeader title={`Perangkat (${filteredDevices.length})`} />
               <CardBody className="space-y-4">
-                <div className="flex flex-wrap items-center gap-2.5">
+                <div className="flex flex-wrap items-center gap-2">
                   <SearchInput
-                    aria-label="Cari kode, nama, atau lokasi node"
-                    placeholder="Cari kode, nama, lokasi..."
+                    aria-label="Cari perangkat"
+                    placeholder="Cari perangkat..."
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
                   />
                   <Select
-                    aria-label="Filter status node"
+                    aria-label="Filter status"
                     value={statusFilter}
                     onChange={(e) => setStatusFilter(e.target.value as StatusFilter)}
-                    className="w-auto min-w-[140px]"
+                    className="w-auto min-w-[130px]"
                   >
-                    <option value="all">Semua status</option>
+                    <option value="all">Semua</option>
                     <option value="online">Online</option>
                     <option value="offline">Offline</option>
-                    <option value="alert">Dengan alert</option>
+                    <option value="alert">Peringatan</option>
                   </Select>
                 </div>
 
                 {filteredDevices.length === 0 ? (
-                  <StateBox
-                    title="Tidak ada node yang cocok"
-                    description="Ubah kata kunci pencarian atau pilih filter status lainnya."
-                  />
+                  <StateBox description="Tidak ada perangkat yang cocok." />
                 ) : (
                   <div className="divide-y divide-slate-100 rounded-xl border border-slate-200/80 dark:divide-slate-800 dark:border-slate-800">
                     {filteredDevices.map((d) => {
-                      const battPct = d.battery_pct ?? 0;
-                      const lowBatt = d.battery_pct !== null && d.battery_pct <= 25;
                       const statusLabel =
                         d.status === 'online'
                           ? 'Online'
@@ -445,56 +289,35 @@ export function OverviewPage({
                         <Link
                           key={d.id}
                           to={`/devices/${d.id}`}
-                          className="group flex items-center justify-between gap-4 px-4 py-3.5 transition-colors hover:bg-slate-50 dark:hover:bg-slate-800/50"
+                          className="group flex items-center justify-between gap-4 px-4 py-3 transition-colors hover:bg-slate-50 dark:hover:bg-slate-800/50"
                         >
                           <div className="min-w-0 flex-1">
-                            <div className="flex flex-wrap items-center gap-2">
-                              <span className="mono text-xs font-semibold text-emerald-700 dark:text-emerald-300">
-                                {d.code}
+                            <div className="flex items-center gap-2">
+                              <span className="truncate text-sm font-semibold text-slate-900 dark:text-slate-100">
+                                {d.name}
                               </span>
                               <StatusBadge status={d.status} label={statusLabel} />
-                              {d.open_alerts > 0 && (
-                                <StatusBadge
-                                  status="acknowledged"
-                                  withDot={false}
-                                  label={`${d.open_alerts} alert`}
-                                />
-                              )}
                             </div>
-                            <div className="mt-1 truncate text-sm font-semibold text-slate-900 dark:text-slate-100">
-                              {d.name}
-                            </div>
-                            <div className="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-slate-600 dark:text-slate-400">
-                              <span>{d.location || 'Lokasi belum diisi'}</span>
-                              <span>Update {formatRelativeTime(d.last_seen)}</span>
+                            <div className="mt-0.5 flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
+                              <span className="mono">{d.code}</span>
+                              <span>•</span>
+                              <span>{formatRelativeTime(d.last_seen)}</span>
                             </div>
                           </div>
 
                           <div className="flex shrink-0 items-center gap-3 text-right">
                             <div className="hidden sm:block">
                               <div className="mono text-xs font-semibold text-slate-800 dark:text-slate-200">
-                                Soil {fmtNum(d.soil_moisture_pct, '%')}
+                                {fmtNum(d.soil_moisture_pct, '%')}
                               </div>
-                              <div className="mono mt-0.5 text-xs text-slate-600 dark:text-slate-400">
+                              <div className="mono text-[11px] text-slate-500 dark:text-slate-400">
                                 Batt {fmtNum(d.battery_pct, '%', 0)}
                               </div>
-                              {d.battery_pct !== null && (
-                                <div className="mt-1 h-1.5 w-16 overflow-hidden rounded-full bg-slate-200 dark:bg-slate-800">
-                                  <div
-                                    className={`h-full rounded-full ${
-                                      lowBatt
-                                        ? 'bg-red-600 dark:bg-red-400'
-                                        : 'bg-emerald-600 dark:bg-emerald-400'
-                                    }`}
-                                    style={{ width: `${Math.max(5, Math.min(100, battPct))}%` }}
-                                  />
-                                </div>
-                              )}
                             </div>
 
                             <ChevronRight
-                              size={18}
-                              className="text-slate-400 transition-transform group-hover:translate-x-0.5 group-hover:text-slate-700 dark:group-hover:text-slate-200"
+                              size={16}
+                              className="text-slate-400 transition-transform group-hover:translate-x-0.5"
                               aria-hidden="true"
                             />
                           </div>

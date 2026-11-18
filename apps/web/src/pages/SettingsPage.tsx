@@ -108,8 +108,8 @@ export function SettingsPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Pengaturan Sistem"
-        subtitle="Threshold default untuk node baru dan pengelolaan akun pengguna dashboard."
+        title="Pengaturan"
+        subtitle="Threshold default perangkat dan manajemen pengguna."
       />
 
       {notice && <StateBox tone="success" description={notice} />}
