@@ -1,0 +1,74 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root,
+  [data-theme='light'] {
+    --chart-text: #0f172a;
+    --chart-muted: #475569;
+    --chart-grid: #e2e8f0;
+    --chart-surface: #ffffff;
+  }
+
+  [data-theme='dark'] {
+    --chart-text: #f1f5f9;
+    --chart-muted: #94a3b8;
+    --chart-grid: #1e293b;
+    --chart-surface: #11171d;
+  }
+
+  html {
+    font-size: 16px;
+  }
+
+  body {
+    @apply bg-[#f6f8fa] text-slate-900 dark:bg-[#090d11] dark:text-slate-100 font-sans antialiased;
+  }
+
+  code,
+  pre,
+  .mono {
+    font-family: 'IBM Plex Mono', ui-monospace, SFMono-Regular, monospace;
+    font-variant-numeric: tabular-nums;
+  }
+
+  :focus-visible {
+    outline: 2px solid #047857;
+    outline-offset: 2px;
+  }
+
+  [data-theme='dark'] :focus-visible {
+    outline-color: #34d399;
+  }
+}
+
+.skip-link {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  z-index: 1000;
+  @apply rounded-lg bg-emerald-700 px-4 py-2.5 text-sm font-semibold text-white dark:bg-emerald-400 dark:text-emerald-950;
+}
+
+.skip-link:focus {
+  left: 0.75rem;
+  top: 0.75rem;
+}
+
+/* Leaflet integration & dark mode tile tuning */
+.leaflet-container {
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+  z-index: 1;
+}
+
+[data-theme='dark'] .leaflet-tile-pane {
+  filter: brightness(0.78) invert(1) contrast(0.95) hue-rotate(190deg) saturate(0.45);
+}
+
+[data-theme='dark'] .leaflet-popup-content-wrapper,
+[data-theme='dark'] .leaflet-popup-tip {
+  background: #11171d;
+  color: #f1f5f9;
+  border: 1px solid #1e293b;
+}

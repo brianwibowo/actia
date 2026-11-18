@@ -1,0 +1,19 @@
+{
+  "name": "arif-telemetry",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Backend API dan dashboard monitoring sensor tanah & daya surya",
+  "workspaces": [
+    "apps/api",
+    "apps/web"
+  ],
+  "scripts": {
+    "dev:api": "npm --workspace=apps/api run dev",
+    "dev:web": "npm --workspace=apps/web run dev",
+    "build": "npm --workspace=apps/api run build && npm --workspace=apps/web run build",
+    "test": "npm --workspace=apps/api test"
+  },
+  "engines": {
+    "node": ">=22.0.0"
+  }
+}
