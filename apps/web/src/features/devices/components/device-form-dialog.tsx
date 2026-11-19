@@ -48,8 +48,8 @@ export function DeviceFormDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className='max-h-[90svh] overflow-y-auto sm:max-w-lg'>
-        <DialogHeader>
+      <DialogContent className='flex max-h-[88svh] flex-col gap-0 overflow-hidden p-0 sm:max-w-lg'>
+        <DialogHeader className='border-b px-6 py-4'>
           <DialogTitle>
             {editingId ? 'Ubah Perangkat' : 'Tambah Perangkat Baru'}
           </DialogTitle>
@@ -60,8 +60,9 @@ export function DeviceFormDialog({
         </DialogHeader>
 
         <form
+          id='device-config-form'
           onSubmit={onSubmit}
-          className='grid grid-cols-1 gap-4 sm:grid-cols-2'
+          className='grid flex-1 grid-cols-1 gap-4 overflow-y-auto px-6 py-4 sm:grid-cols-2'
         >
           <div className='grid gap-2'>
             <Label htmlFor='dev-code'>Kode Perangkat</Label>
@@ -104,7 +105,7 @@ export function DeviceFormDialog({
                   setForm({ ...form, status: v as DeviceStatus })
                 }
               >
-                <SelectTrigger id='dev-status'>
+                <SelectTrigger id='dev-status' className='w-full'>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -143,12 +144,25 @@ export function DeviceFormDialog({
           </div>
 
           <div className='sm:col-span-2'>
-            <p className='mb-2 text-xs text-muted-foreground'>
-              Klik peta untuk mengisi koordinat otomatis:
-            </p>
+            <div className='mb-2 flex items-center justify-between'>
+              <p className='text-xs text-muted-foreground'>
+                Klik peta untuk mengisi koordinat otomatis:
+              </p>
+              {(form.lat || form.lng) && (
+                <button
+                  type='button'
+                  onClick={() =>
+                    setForm((prev) => ({ ...prev, lat: '', lng: '' }))
+                  }
+                  className='text-xs text-muted-foreground underline underline-offset-2 hover:text-foreground'
+                >
+                  Reset koordinat
+                </button>
+              )}
+            </div>
             <NodeMap
               devices={[]}
-              height={190}
+              height={180}
               pickCoords={{
                 lat: Number.isFinite(parsedLat) ? parsedLat : null,
                 lng: Number.isFinite(parsedLng) ? parsedLng : null,
@@ -226,20 +240,20 @@ export function DeviceFormDialog({
               </Alert>
             </div>
           )}
-
-          <DialogFooter className='sm:col-span-2'>
-            <Button
-              type='button'
-              variant='outline'
-              onClick={() => onOpenChange(false)}
-            >
-              Batal
-            </Button>
-            <Button type='submit' disabled={saving}>
-              {saving ? 'Menyimpan...' : 'Simpan'}
-            </Button>
-          </DialogFooter>
         </form>
+
+        <DialogFooter className='border-t bg-muted/20 px-6 py-3.5'>
+          <Button
+            type='button'
+            variant='outline'
+            onClick={() => onOpenChange(false)}
+          >
+            Batal
+          </Button>
+          <Button type='submit' form='device-config-form' disabled={saving}>
+            {saving ? 'Menyimpan...' : 'Simpan'}
+          </Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   )

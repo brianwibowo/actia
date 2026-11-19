@@ -61,7 +61,7 @@ export function DeviceDetailKpis({ device }: { device: DeviceSummary }) {
           <CardTitle className='text-sm font-medium'>
             Input Panel Surya
           </CardTitle>
-          <Sun className='size-4 text-[#FFD758]' />
+          <Sun className='size-4 text-amber-600 dark:text-[#FFD758]' />
         </CardHeader>
         <CardContent>
           <div className='text-2xl font-bold tabular-nums'>

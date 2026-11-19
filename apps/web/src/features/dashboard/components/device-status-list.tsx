@@ -43,7 +43,7 @@ export function DeviceStatusList({ devices }: { devices: DeviceSummary[] }) {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
-        <div className='space-y-4'>
+        <div className='max-h-[310px] space-y-3 overflow-y-auto pe-1'>
           {filteredDevices.map((d) => (
             <Link
               key={d.id}

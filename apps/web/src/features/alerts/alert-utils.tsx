@@ -22,7 +22,7 @@ export function alertMetricLabel(metric: string | null): string {
 
 export function AlertTypeIcon({ type }: { type: AlertItem['type'] }) {
   if (type === 'battery_low') {
-    return <BatteryWarning className='size-4 text-[#FFD758]' />
+    return <BatteryWarning className='size-4 text-amber-600 dark:text-[#FFD758]' />
   }
   if (type === 'sensor_error') {
     return <ShieldAlert className='size-4 text-destructive' />

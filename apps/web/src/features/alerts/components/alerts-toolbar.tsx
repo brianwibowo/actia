@@ -99,22 +99,24 @@ export function AlertsToolbar({
         )}
       </div>
 
-      <Tabs value={statusFilter} onValueChange={onStatusChange}>
-        <TabsList className='h-9'>
-          <TabsTrigger value='all' className='text-xs'>
-            Semua ({totalCount})
-          </TabsTrigger>
-          <TabsTrigger value='open' className='text-xs'>
-            Terbuka ({openCount})
-          </TabsTrigger>
-          <TabsTrigger value='acknowledged' className='text-xs'>
-            Ditangani ({acknowledgedCount})
-          </TabsTrigger>
-          <TabsTrigger value='resolved' className='text-xs'>
-            Pulih ({resolvedCount})
-          </TabsTrigger>
-        </TabsList>
-      </Tabs>
+      <div className='w-full overflow-x-auto pb-0.5 sm:w-auto sm:pb-0'>
+        <Tabs value={statusFilter} onValueChange={onStatusChange}>
+          <TabsList className='h-9'>
+            <TabsTrigger value='all' className='text-xs'>
+              Semua ({totalCount})
+            </TabsTrigger>
+            <TabsTrigger value='open' className='text-xs'>
+              Terbuka ({openCount})
+            </TabsTrigger>
+            <TabsTrigger value='acknowledged' className='text-xs'>
+              Ditangani ({acknowledgedCount})
+            </TabsTrigger>
+            <TabsTrigger value='resolved' className='text-xs'>
+              Pulih ({resolvedCount})
+            </TabsTrigger>
+          </TabsList>
+        </Tabs>
+      </div>
     </div>
   )
 }

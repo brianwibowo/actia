@@ -81,7 +81,7 @@ export function DashboardKpis({ devices, openAlerts }: DashboardKpisProps) {
           <CardTitle className='text-sm font-medium'>
             Peringatan Aktif
           </CardTitle>
-          <AlertTriangle className='h-4 w-4 text-[#FFD758]' />
+          <AlertTriangle className='h-4 w-4 text-amber-600 dark:text-[#FFD758]' />
         </CardHeader>
         <CardContent>
           <div className='text-2xl font-bold'>{openAlerts.length}</div>

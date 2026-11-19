@@ -102,7 +102,7 @@ export function UsersManagement({
               value={newRole}
               onValueChange={(v) => setNewRole(v as UserRole)}
             >
-              <SelectTrigger id='user-role'>
+              <SelectTrigger id='user-role' className='w-full'>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>

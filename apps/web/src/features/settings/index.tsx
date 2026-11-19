@@ -121,7 +121,7 @@ export function SettingsPage() {
         </div>
       </Header>
 
-      <Main fixed>
+      <Main className='space-y-4'>
         <div className='space-y-0.5'>
           <h1 className='text-2xl font-bold tracking-tight md:text-3xl'>
             Settings
@@ -133,9 +133,9 @@ export function SettingsPage() {
         </div>
         <Separator className='my-4 lg:my-6' />
 
-        <div className='flex flex-1 flex-col space-y-2 overflow-hidden md:space-y-2 lg:flex-row lg:space-y-0 lg:space-x-12'>
-          <aside className='top-0 lg:sticky lg:w-1/5'>
-            <nav className='flex space-x-2 py-1 lg:flex-col lg:space-y-1 lg:space-x-0'>
+        <div className='flex flex-1 flex-col gap-6 lg:flex-row lg:gap-12'>
+          <aside className='lg:w-1/5'>
+            <nav className='flex flex-wrap gap-2 py-1 lg:flex-col lg:gap-1'>
               <button
                 type='button'
                 onClick={() => {
@@ -178,7 +178,7 @@ export function SettingsPage() {
             </nav>
           </aside>
 
-          <div className='flex w-full overflow-y-hidden p-1'>
+          <div className='flex w-full min-w-0 flex-1'>
             <div className='flex-1 space-y-4 lg:max-w-2xl'>
               {error && (
                 <Alert variant='destructive'>

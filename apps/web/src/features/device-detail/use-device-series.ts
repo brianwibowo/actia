@@ -19,7 +19,7 @@ export function useDeviceSeries(
     const out: ChartSeries[] = [
       {
         name: 'Suhu Udara (°C)',
-        color: '#FFD758',
+        color: '#d97706',
         data: sensorRows.map((r) => [r.ts, r.temperature_c]),
       },
       {
@@ -39,7 +39,7 @@ export function useDeviceSeries(
     if (sensorRows.some((r) => r.ph !== null)) {
       out.push({
         name: 'pH Tanah',
-        color: '#FCE59A',
+        color: '#ca8a04',
         data: sensorRows.map((r) => [r.ts, r.ph]),
       })
     }
@@ -61,7 +61,7 @@ export function useDeviceSeries(
     () => [
       {
         name: 'Tegangan Solar (V)',
-        color: '#FFD758',
+        color: '#d97706',
         data: powerRows.map((r) => [r.ts, r.solar_voltage_v]),
       },
       {

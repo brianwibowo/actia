@@ -35,6 +35,7 @@ export function NodeMap({
     const map = L.map(containerRef.current, {
       center: [-6.9175, 107.6191],
       zoom: 7,
+      scrollWheelZoom: !onPickCoords,
     });
 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -48,8 +49,10 @@ export function NodeMap({
 
     const ro = new ResizeObserver(() => map.invalidateSize());
     ro.observe(containerRef.current);
+    const animTimer = setTimeout(() => map.invalidateSize(), 260);
 
     return () => {
+      clearTimeout(animTimer);
       ro.disconnect();
       map.remove();
       mapRef.current = null;
@@ -151,7 +154,7 @@ export function NodeMap({
   return (
     <div
       ref={containerRef}
-      className="w-full overflow-hidden rounded-lg border border-zinc-200 dark:border-zinc-800"
+      className="relative z-0 isolate w-full overflow-hidden rounded-lg border border-border"
       style={{ height: `${height}px` }}
       aria-label="Peta lokasi perangkat"
     />
