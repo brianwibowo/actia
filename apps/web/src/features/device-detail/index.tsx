@@ -44,8 +44,11 @@ export function DeviceDetailPage({
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
 
-  const loadData = useCallback(async () => {
+  const loadData = useCallback(async (silent = false) => {
     if (!id) return
+    if (!silent) {
+      setLoading(true)
+    }
     setError('')
     try {
       const { from, to } = rangeDates(range)
@@ -69,17 +72,25 @@ export function DeviceDetailPage({
     } catch (err) {
       const msg =
         err instanceof ApiError ? err.message : 'Gagal memuat detail perangkat'
-      setError(msg)
-      swalToast('error', 'Gagal memuat detail perangkat', msg)
+      if (!silent) {
+        setError(msg)
+        swalToast('error', 'Gagal memuat detail perangkat', msg)
+      }
     } finally {
-      setLoading(false)
+      if (!silent) {
+        setLoading(false)
+      }
     }
   }, [id, range])
 
   useEffect(() => {
-    setLoading(true)
-    void loadData()
-  }, [loadData, refreshToken])
+    void loadData(false)
+  }, [loadData])
+
+  useEffect(() => {
+    if (refreshToken === 0) return
+    void loadData(true)
+  }, [refreshToken, loadData])
 
   const { sensorSeries, ecSeries, powerSeries } = useDeviceSeries(
     sensorRows,

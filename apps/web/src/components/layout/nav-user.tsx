@@ -8,6 +8,7 @@ import {
   Sparkles,
 } from 'lucide-react'
 import useDialogState from '@/hooks/use-dialog-state'
+import { useTelemetry } from '@/context/telemetry-provider'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import {
   DropdownMenu,
@@ -36,6 +37,7 @@ type NavUserProps = {
 
 export function NavUser({ user }: NavUserProps) {
   const { isMobile } = useSidebar()
+  const { user: authUser } = useTelemetry()
   const [open, setOpen] = useDialogState()
   const initials = user.email.slice(0, 2).toUpperCase()
 
@@ -101,12 +103,14 @@ export function NavUser({ user }: NavUserProps) {
                     Peringatan
                   </Link>
                 </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link to='/settings'>
-                    <BadgeCheck />
-                    Pengaturan
-                  </Link>
-                </DropdownMenuItem>
+                {authUser?.role === 'admin' && (
+                  <DropdownMenuItem asChild>
+                    <Link to='/settings'>
+                      <BadgeCheck />
+                      Pengaturan
+                    </Link>
+                  </DropdownMenuItem>
+                )}
               </DropdownMenuGroup>
               <DropdownMenuSeparator />
               <DropdownMenuItem

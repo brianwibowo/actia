@@ -4,7 +4,7 @@ import { Loader2 } from 'lucide-react'
 import { swalToast } from '@/lib/swal'
 import { TelemetryProvider } from '@/context/telemetry-provider'
 import { AuthenticatedLayout } from '@/components/layout/authenticated-layout'
-import { apiFetch } from './lib/api'
+import { apiFetch, ApiError } from './lib/api'
 import { AlertsPage } from './pages/AlertsPage'
 import { DeviceDetailPage } from './pages/DeviceDetailPage'
 import { LoginPage } from './pages/LoginPage'
@@ -43,6 +43,14 @@ export function App() {
       setOpenAlerts(alertRes.alerts)
       setRefreshToken((n) => n + 1)
     } catch (err) {
+      if (err instanceof ApiError && err.status === 401) {
+        setUser(null)
+        setDevices([])
+        setOpenAlerts([])
+        setStreamConnected(false)
+        swalToast('warning', 'Sesi telah berakhir', 'Silakan login kembali.')
+        return
+      }
       setDataError(err instanceof Error ? err.message : 'Gagal memuat data')
     } finally {
       setDataLoading(false)

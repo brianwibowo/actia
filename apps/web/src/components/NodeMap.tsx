@@ -116,14 +116,23 @@ export function NodeMap({
             ? 'Pemeliharaan'
             : 'Offline';
 
-      marker.bindPopup(
-        `<strong>${d.code} - ${d.name}</strong><br/>` +
-          `Status: ${statusLabel}<br/>` +
-          `Suhu: ${fmtNum(d.temperature_c, ' °C')}<br/>` +
-          `Soil moisture: ${fmtNum(d.soil_moisture_pct, '%')}<br/>` +
-          `Baterai: ${fmtNum(d.battery_pct, '%', 0)}<br/>` +
-          `Terakhir: ${formatRelativeTime(d.last_seen)}`,
-      );
+      const popupEl = document.createElement('div');
+      const titleEl = document.createElement('strong');
+      titleEl.textContent = `${d.code} - ${d.name}`;
+      popupEl.appendChild(titleEl);
+
+      const rows = [
+        `Status: ${statusLabel}`,
+        `Suhu: ${fmtNum(d.temperature_c, ' °C')}`,
+        `Soil moisture: ${fmtNum(d.soil_moisture_pct, '%')}`,
+        `Baterai: ${fmtNum(d.battery_pct, '%', 0)}`,
+        `Terakhir: ${formatRelativeTime(d.last_seen)}`,
+      ];
+      for (const line of rows) {
+        popupEl.appendChild(document.createElement('br'));
+        popupEl.appendChild(document.createTextNode(line));
+      }
+      marker.bindPopup(popupEl);
 
       if (onSelectDevice) {
         marker.on('dblclick', () => onSelectDevice(d.id));

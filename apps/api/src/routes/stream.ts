@@ -20,14 +20,20 @@ export async function streamAndHealthRoutes(app: FastifyInstance) {
       connection: 'keep-alive',
     });
 
-    reply.raw.write(`event: connected\ndata: ${JSON.stringify({ ok: true })}\n\n`);
+    const safeWrite = (chunk: string) => {
+      if (!reply.raw.writableEnded && !reply.raw.destroyed) {
+        reply.raw.write(chunk);
+      }
+    };
+
+    safeWrite(`event: connected\ndata: ${JSON.stringify({ ok: true })}\n\n`);
 
     const onEvent = (ev: StreamEvent) => {
-      reply.raw.write(`event: ${ev.type}\ndata: ${JSON.stringify(ev)}\n\n`);
+      safeWrite(`event: ${ev.type}\ndata: ${JSON.stringify(ev)}\n\n`);
     };
 
     const keepalive = setInterval(() => {
-      reply.raw.write(': keepalive\n\n');
+      safeWrite(': keepalive\n\n');
     }, 25_000);
 
     eventBus.on('stream', onEvent);

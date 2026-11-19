@@ -1,9 +1,12 @@
+import type { DeviceStatus } from '@/types'
+
 export interface DeviceFormState {
   code: string
   name: string
   location: string
   lat: string
   lng: string
+  status: DeviceStatus
   report_interval_s: string
   battery_pct_min: string
   battery_voltage_min: string
@@ -16,6 +19,7 @@ export const emptyDeviceForm: DeviceFormState = {
   location: '',
   lat: '',
   lng: '',
+  status: 'offline',
   report_interval_s: '300',
   battery_pct_min: '20',
   battery_voltage_min: '11.6',

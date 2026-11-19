@@ -11,7 +11,15 @@ import {
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { NodeMap } from '@/components/NodeMap'
+import type { DeviceStatus } from '@/types'
 import type { DeviceFormState } from '../types'
 
 interface DeviceFormDialogProps {
@@ -86,6 +94,29 @@ export function DeviceFormDialog({
               onChange={(e) => setForm({ ...form, location: e.target.value })}
             />
           </div>
+
+          {editingId && (
+            <div className='grid gap-2 sm:col-span-2'>
+              <Label htmlFor='dev-status'>Status Operasional</Label>
+              <Select
+                value={form.status}
+                onValueChange={(v) =>
+                  setForm({ ...form, status: v as DeviceStatus })
+                }
+              >
+                <SelectTrigger id='dev-status'>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value='online'>Online (Aktif)</SelectItem>
+                  <SelectItem value='maintenance'>
+                    Maintenance (Pemeliharaan)
+                  </SelectItem>
+                  <SelectItem value='offline'>Offline</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          )}
 
           <div className='grid gap-2'>
             <Label htmlFor='dev-lat'>Latitude</Label>

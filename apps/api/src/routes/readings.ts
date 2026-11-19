@@ -1,5 +1,6 @@
 import type { FastifyInstance } from 'fastify';
 import { query } from '../db/pool.js';
+import { isUuid, sanitizeFilename } from '../lib/validate.js';
 import { requireAuth } from '../plugins/auth.js';
 
 const BUCKET_MAP: Record<string, string> = {
@@ -48,8 +49,11 @@ export async function readingsRoutes(app: FastifyInstance) {
   app.get(
     '/api/v1/devices/:id/sensor-readings',
     { preHandler: requireAuth },
-    async (request) => {
+    async (request, reply) => {
       const { id } = request.params as { id: string };
+      if (!isUuid(id)) {
+        return reply.code(404).send({ error: 'Perangkat tidak ditemukan' });
+      }
       const q = request.query as { from?: string; to?: string; bucket?: string };
       const { from, to } = pickRange(q.from, q.to);
       const bucket = resolveBucket(q.bucket, from, to);
@@ -86,8 +90,11 @@ export async function readingsRoutes(app: FastifyInstance) {
   app.get(
     '/api/v1/devices/:id/power-readings',
     { preHandler: requireAuth },
-    async (request) => {
+    async (request, reply) => {
       const { id } = request.params as { id: string };
+      if (!isUuid(id)) {
+        return reply.code(404).send({ error: 'Perangkat tidak ditemukan' });
+      }
       const q = request.query as { from?: string; to?: string; bucket?: string };
       const { from, to } = pickRange(q.from, q.to);
       const bucket = resolveBucket(q.bucket, from, to);
@@ -128,15 +135,18 @@ export async function readingsRoutes(app: FastifyInstance) {
     { preHandler: requireAuth },
     async (request, reply) => {
       const { id } = request.params as { id: string };
+      if (!isUuid(id)) {
+        return reply.code(404).send({ error: 'Perangkat tidak ditemukan' });
+      }
       const q = request.query as { type?: string; from?: string; to?: string };
       const { from, to } = pickRange(q.from, q.to);
       const exportType = q.type === 'power' ? 'power' : 'sensor';
 
       const devRes = await query<{ code: string }>('SELECT code FROM devices WHERE id = $1', [id]);
       if (!devRes.rows[0]) {
-        return reply.code(404).send({ error: 'Node tidak ditemukan' });
+        return reply.code(404).send({ error: 'Perangkat tidak ditemukan' });
       }
-      const code = devRes.rows[0].code;
+      const safeCode = sanitizeFilename(devRes.rows[0].code);
 
       if (exportType === 'power') {
         const res = await query(
@@ -164,7 +174,7 @@ export async function readingsRoutes(app: FastifyInstance) {
         ];
         return reply
           .header('content-type', 'text/csv; charset=utf-8')
-          .header('content-disposition', `attachment; filename="${code}-power.csv"`)
+          .header('content-disposition', `attachment; filename="${safeCode}-power.csv"`)
           .send(lines.join('\n'));
       }
 
@@ -191,7 +201,7 @@ export async function readingsRoutes(app: FastifyInstance) {
       ];
       return reply
         .header('content-type', 'text/csv; charset=utf-8')
-        .header('content-disposition', `attachment; filename="${code}-sensor.csv"`)
+        .header('content-disposition', `attachment; filename="${safeCode}-sensor.csv"`)
         .send(lines.join('\n'));
     },
   );

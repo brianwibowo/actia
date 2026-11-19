@@ -2,6 +2,7 @@ import bcrypt from 'bcryptjs';
 import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import { query } from '../db/pool.js';
+import { isUuid } from '../lib/validate.js';
 import { requireAdmin } from '../plugins/auth.js';
 
 const settingsSchema = z.object({
@@ -80,6 +81,9 @@ export async function settingsRoutes(app: FastifyInstance) {
 
   app.delete('/api/v1/users/:id', { preHandler: requireAdmin }, async (request, reply) => {
     const { id } = request.params as { id: string };
+    if (!isUuid(id)) {
+      return reply.code(404).send({ error: 'User tidak ditemukan' });
+    }
     if (id === request.user.id) {
       return reply.code(400).send({ error: 'Tidak bisa menghapus akun sendiri' });
     }

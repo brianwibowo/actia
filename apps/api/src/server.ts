@@ -14,6 +14,7 @@ import { ingestRoutes } from './routes/ingest.js';
 import { readingsRoutes } from './routes/readings.js';
 import { settingsRoutes } from './routes/settings.js';
 import { streamAndHealthRoutes } from './routes/stream.js';
+import { startPgEventListener } from './services/events.js';
 
 export async function buildApp() {
   const cfg = loadConfig();
@@ -59,9 +60,11 @@ async function main() {
   await runSeed();
 
   const { app, cfg } = await buildApp();
+  const stopPgEvents = startPgEventListener(cfg.databaseUrl);
   await app.listen({ port: cfg.port, host: cfg.host });
 
   const shutdown = async () => {
+    await stopPgEvents();
     await app.close();
     await closePool();
     process.exit(0);

@@ -144,6 +144,7 @@ export function ManageDevicesPage({
       location: d.location,
       lat: d.lat !== null ? String(d.lat) : '',
       lng: d.lng !== null ? String(d.lng) : '',
+      status: d.status,
       report_interval_s: String(d.report_interval_s),
       battery_pct_min: String(d.battery_pct_min ?? 20),
       battery_voltage_min: String(d.battery_voltage_min ?? 11.6),
@@ -210,7 +211,7 @@ export function ManageDevicesPage({
       if (editingId) {
         await apiFetch(`/api/v1/devices/${editingId}`, {
           method: 'PATCH',
-          body: JSON.stringify(payload),
+          body: JSON.stringify({ ...payload, status: form.status }),
         })
         swalToast('success', `Perangkat ${payload.code} berhasil diperbarui`)
       } else {

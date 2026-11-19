@@ -2,6 +2,7 @@ import { loadConfig } from './config.js';
 import { runMigrations } from './db/migrate.js';
 import { closePool, withTransaction } from './db/pool.js';
 import { openAlertIfNotExists } from './services/alert-evaluator.js';
+import { PG_EVENT_CHANNEL } from './services/events.js';
 import { sendTelegramAlert } from './services/notifier.js';
 
 export async function checkOfflineDevices(
@@ -34,6 +35,11 @@ export async function checkOfflineDevices(
 
     for (const row of res.rows) {
       await client.query(`UPDATE devices SET status = 'offline' WHERE id = $1`, [row.id]);
+      await client.query(`SELECT pg_notify($1, $2)`, [
+        PG_EVENT_CHANNEL,
+        JSON.stringify({ type: 'device_status', deviceId: row.id, status: 'offline' }),
+      ]);
+
       const opened = await openAlertIfNotExists(
         client,
         row.id,
@@ -43,6 +49,15 @@ export async function checkOfflineDevices(
         row.offline_after_s,
       );
       if (opened) {
+        await client.query(`SELECT pg_notify($1, $2)`, [
+          PG_EVENT_CHANNEL,
+          JSON.stringify({
+            type: 'alert',
+            action: 'opened',
+            deviceId: row.id,
+            alertType: 'offline',
+          }),
+        ]);
         newlyOffline.push({
           id: row.id,
           code: row.code,

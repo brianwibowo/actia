@@ -1,4 +1,5 @@
 export type UserRole = 'admin' | 'viewer';
+export type DeviceStatus = 'online' | 'offline' | 'maintenance';
 
 export interface AuthUser {
   id: string;
@@ -13,7 +14,7 @@ export interface DeviceSummary {
   location: string;
   lat: number | null;
   lng: number | null;
-  status: 'online' | 'offline' | 'maintenance';
+  status: DeviceStatus;
   last_seen: string | null;
   report_interval_s: number;
   created_at: string;

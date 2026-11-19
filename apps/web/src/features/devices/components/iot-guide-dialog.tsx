@@ -1,4 +1,4 @@
-\import { Copy, Download, Terminal } from 'lucide-react'
+import { Copy, Download, Terminal } from 'lucide-react'
 import { swalToast } from '@/lib/swal'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'

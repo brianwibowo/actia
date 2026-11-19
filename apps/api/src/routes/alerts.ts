@@ -1,5 +1,6 @@
 import type { FastifyInstance } from 'fastify';
 import { query } from '../db/pool.js';
+import { isPositiveIntId, isUuid, parseOptionalDate } from '../lib/validate.js';
 import { requireAuth } from '../plugins/auth.js';
 import { eventBus } from '../services/events.js';
 
@@ -25,15 +26,20 @@ export async function alertRoutes(app: FastifyInstance) {
       conditions.push(`a.type = $${params.length}`);
     }
     if (q.device_id) {
+      if (!isUuid(q.device_id)) {
+        return { alerts: [] };
+      }
       params.push(q.device_id);
       conditions.push(`a.device_id = $${params.length}`);
     }
-    if (q.from) {
-      params.push(new Date(q.from));
+    const fromDate = parseOptionalDate(q.from);
+    if (fromDate) {
+      params.push(fromDate);
       conditions.push(`a.triggered_at >= $${params.length}`);
     }
-    if (q.to) {
-      params.push(new Date(q.to));
+    const toDate = parseOptionalDate(q.to);
+    if (toDate) {
+      params.push(toDate);
       conditions.push(`a.triggered_at <= $${params.length}`);
     }
 
@@ -59,6 +65,10 @@ export async function alertRoutes(app: FastifyInstance) {
 
   app.patch('/api/v1/alerts/:id', { preHandler: requireAuth }, async (request, reply) => {
     const { id } = request.params as { id: string };
+    if (!isPositiveIntId(id)) {
+      return reply.code(404).send({ error: 'Alert tidak ditemukan' });
+    }
+
     const res = await query<{ id: number; device_id: string; type: string }>(
       `UPDATE alerts
        SET status = 'acknowledged',

@@ -2,6 +2,7 @@ import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import { clearDemoDevices, seedDemoDevices } from '../db/seed.js';
 import { query, withTransaction } from '../db/pool.js';
+import { isUuid } from '../lib/validate.js';
 import { requireAdmin, requireAuth } from '../plugins/auth.js';
 import { generateDeviceKey } from '../services/device-key.js';
 
@@ -69,7 +70,7 @@ export async function deviceRoutes(app: FastifyInstance) {
        LEFT JOIN LATERAL (
          SELECT COUNT(*) AS open_alerts
          FROM alerts
-         WHERE device_id = d.id AND status IN ('open', 'acknowledged')
+         WHERE device_id = d.id AND status = 'open'
        ) al ON TRUE
        ORDER BY d.code ASC`,
     );
@@ -79,6 +80,10 @@ export async function deviceRoutes(app: FastifyInstance) {
 
   app.get('/api/v1/devices/:id', { preHandler: requireAuth }, async (request, reply) => {
     const { id } = request.params as { id: string };
+    if (!isUuid(id)) {
+      return reply.code(404).send({ error: 'Perangkat tidak ditemukan' });
+    }
+
     const res = await query(
       `SELECT d.id, d.code, d.name, d.location, d.lat, d.lng, d.status, d.last_seen,
               d.report_interval_s, d.created_at,
@@ -86,7 +91,8 @@ export async function deviceRoutes(app: FastifyInstance) {
               sr.ts AS sensor_ts, sr.temperature_c, sr.soil_moisture_pct,
               sr.soil_temp_c, sr.ec, sr.ph,
               pr.ts AS power_ts, pr.solar_voltage_v, pr.solar_current_a,
-              pr.battery_voltage_v, pr.battery_current_a, pr.power_w, pr.battery_pct
+              pr.battery_voltage_v, pr.battery_current_a, pr.power_w, pr.battery_pct,
+              COALESCE(al.open_alerts, 0)::int AS open_alerts
        FROM devices d
        LEFT JOIN device_thresholds dt ON dt.device_id = d.id
        LEFT JOIN LATERAL (
@@ -98,12 +104,17 @@ export async function deviceRoutes(app: FastifyInstance) {
                 battery_current_a, power_w, battery_pct
          FROM power_readings WHERE device_id = d.id ORDER BY ts DESC LIMIT 1
        ) pr ON TRUE
+       LEFT JOIN LATERAL (
+         SELECT COUNT(*) AS open_alerts
+         FROM alerts
+         WHERE device_id = d.id AND status = 'open'
+       ) al ON TRUE
        WHERE d.id = $1`,
       [id],
     );
 
     if (!res.rows[0]) {
-      return reply.code(404).send({ error: 'Node tidak ditemukan' });
+      return reply.code(404).send({ error: 'Perangkat tidak ditemukan' });
     }
     return { device: res.rows[0] };
   });
@@ -158,12 +169,11 @@ export async function deviceRoutes(app: FastifyInstance) {
         return row.rows[0];
       });
 
-      // Key mentah hanya dikembalikan sekali saat node dibuat.
       return reply.code(201).send({ device: created, device_key: raw });
     } catch (err: unknown) {
       const pgErr = err as { code?: string };
       if (pgErr.code === '23505') {
-        return reply.code(409).send({ error: `Kode node "${code}" sudah dipakai` });
+        return reply.code(409).send({ error: `Kode perangkat "${code}" sudah dipakai` });
       }
       throw err;
     }
@@ -171,80 +181,95 @@ export async function deviceRoutes(app: FastifyInstance) {
 
   app.patch('/api/v1/devices/:id', { preHandler: requireAdmin }, async (request, reply) => {
     const { id } = request.params as { id: string };
+    if (!isUuid(id)) {
+      return reply.code(404).send({ error: 'Perangkat tidak ditemukan' });
+    }
+
     const parsed = updateDeviceSchema.safeParse(request.body);
     if (!parsed.success) {
       return reply.code(400).send({ error: parsed.error.issues[0]?.message ?? 'Input tidak valid' });
     }
 
     const d = parsed.data;
-    const updated = await withTransaction(async (client) => {
-      const existing = await client.query('SELECT id FROM devices WHERE id = $1', [id]);
-      if (existing.rowCount === 0) return null;
+    try {
+      const updated = await withTransaction(async (client) => {
+        const existing = await client.query('SELECT id FROM devices WHERE id = $1', [id]);
+        if (existing.rowCount === 0) return null;
 
-      await client.query(
-        `UPDATE devices SET
-          code = COALESCE($2, code),
-          name = COALESCE($3, name),
-          location = COALESCE($4, location),
-          lat = CASE WHEN $5::boolean THEN $6 ELSE lat END,
-          lng = CASE WHEN $7::boolean THEN $8 ELSE lng END,
-          status = COALESCE($9, status),
-          report_interval_s = COALESCE($10, report_interval_s)
-         WHERE id = $1`,
-        [
-          id,
-          d.code ?? null,
-          d.name ?? null,
-          d.location ?? null,
-          d.lat !== undefined,
-          d.lat ?? null,
-          d.lng !== undefined,
-          d.lng ?? null,
-          d.status ?? null,
-          d.report_interval_s ?? null,
-        ],
-      );
-
-      if (d.thresholds) {
         await client.query(
-          `INSERT INTO device_thresholds (device_id, battery_pct_min, battery_voltage_min, offline_after_s)
-           VALUES ($1, $2, $3, $4)
-           ON CONFLICT (device_id) DO UPDATE SET
-             battery_pct_min = EXCLUDED.battery_pct_min,
-             battery_voltage_min = EXCLUDED.battery_voltage_min,
-             offline_after_s = EXCLUDED.offline_after_s`,
+          `UPDATE devices SET
+            code = COALESCE($2, code),
+            name = COALESCE($3, name),
+            location = COALESCE($4, location),
+            lat = CASE WHEN $5::boolean THEN $6 ELSE lat END,
+            lng = CASE WHEN $7::boolean THEN $8 ELSE lng END,
+            status = COALESCE($9, status),
+            report_interval_s = COALESCE($10, report_interval_s)
+           WHERE id = $1`,
           [
             id,
-            d.thresholds.battery_pct_min,
-            d.thresholds.battery_voltage_min,
-            d.thresholds.offline_after_s,
+            d.code ?? null,
+            d.name ?? null,
+            d.location ?? null,
+            d.lat !== undefined,
+            d.lat ?? null,
+            d.lng !== undefined,
+            d.lng ?? null,
+            d.status ?? null,
+            d.report_interval_s ?? null,
           ],
         );
+
+        if (d.thresholds) {
+          await client.query(
+            `INSERT INTO device_thresholds (device_id, battery_pct_min, battery_voltage_min, offline_after_s)
+             VALUES ($1, $2, $3, $4)
+             ON CONFLICT (device_id) DO UPDATE SET
+               battery_pct_min = EXCLUDED.battery_pct_min,
+               battery_voltage_min = EXCLUDED.battery_voltage_min,
+               offline_after_s = EXCLUDED.offline_after_s`,
+            [
+              id,
+              d.thresholds.battery_pct_min,
+              d.thresholds.battery_voltage_min,
+              d.thresholds.offline_after_s,
+            ],
+          );
+        }
+
+        const res = await client.query(
+          `SELECT d.id, d.code, d.name, d.location, d.lat, d.lng, d.status, d.last_seen,
+                  d.report_interval_s, d.created_at,
+                  dt.battery_pct_min, dt.battery_voltage_min, dt.offline_after_s
+           FROM devices d
+           LEFT JOIN device_thresholds dt ON dt.device_id = d.id
+           WHERE d.id = $1`,
+          [id],
+        );
+        return res.rows[0];
+      });
+
+      if (!updated) {
+        return reply.code(404).send({ error: 'Perangkat tidak ditemukan' });
       }
-
-      const res = await client.query(
-        `SELECT d.id, d.code, d.name, d.location, d.lat, d.lng, d.status, d.last_seen,
-                d.report_interval_s, d.created_at,
-                dt.battery_pct_min, dt.battery_voltage_min, dt.offline_after_s
-         FROM devices d
-         LEFT JOIN device_thresholds dt ON dt.device_id = d.id
-         WHERE d.id = $1`,
-        [id],
-      );
-      return res.rows[0];
-    });
-
-    if (!updated) {
-      return reply.code(404).send({ error: 'Node tidak ditemukan' });
+      return { device: updated };
+    } catch (err: unknown) {
+      const pgErr = err as { code?: string };
+      if (pgErr.code === '23505') {
+        return reply.code(409).send({ error: `Kode perangkat "${d.code}" sudah dipakai` });
+      }
+      throw err;
     }
-    return { device: updated };
   });
 
   app.delete('/api/v1/devices/:id', { preHandler: requireAdmin }, async (request, reply) => {
     const { id } = request.params as { id: string };
+    if (!isUuid(id)) {
+      return reply.code(404).send({ error: 'Perangkat tidak ditemukan' });
+    }
     const res = await query('DELETE FROM devices WHERE id = $1 RETURNING id', [id]);
     if (res.rowCount === 0) {
-      return reply.code(404).send({ error: 'Node tidak ditemukan' });
+      return reply.code(404).send({ error: 'Perangkat tidak ditemukan' });
     }
     return { ok: true };
   });
@@ -254,13 +279,16 @@ export async function deviceRoutes(app: FastifyInstance) {
     { preHandler: requireAdmin },
     async (request, reply) => {
       const { id } = request.params as { id: string };
+      if (!isUuid(id)) {
+        return reply.code(404).send({ error: 'Perangkat tidak ditemukan' });
+      }
       const { raw, hash } = generateDeviceKey();
       const res = await query(
         'UPDATE devices SET api_key_hash = $2 WHERE id = $1 RETURNING id, code',
         [id, hash],
       );
       if (res.rowCount === 0) {
-        return reply.code(404).send({ error: 'Node tidak ditemukan' });
+        return reply.code(404).send({ error: 'Perangkat tidak ditemukan' });
       }
       return { device_key: raw };
     },
