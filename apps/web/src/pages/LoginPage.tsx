@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react'
-import { Command, Loader2 } from 'lucide-react'
+import { Loader2 } from 'lucide-react'
 import { swalToast } from '@/lib/swal'
+import { ActiaLogoMark } from '@/components/svg/actia-illustrations'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -54,10 +55,8 @@ export function LoginPage({ onSuccess }: LoginPageProps) {
           className='absolute inset-0 bg-gradient-to-t from-black/80 via-black/15 to-black/35'
         />
 
-        <div className='relative z-20 flex items-center gap-2 text-lg font-medium'>
-          <div className='flex size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground'>
-            <Command className='size-4' />
-          </div>
+        <div className='relative z-20 flex items-center gap-2.5 text-lg font-semibold'>
+          <ActiaLogoMark className='size-9 shadow-sm' />
           Actia Telemetry
         </div>
 

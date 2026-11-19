@@ -31,7 +31,9 @@ export function DevicesKpiCards({ devices }: DevicesKpiCardsProps) {
       <Card>
         <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
           <CardTitle className='text-sm font-medium'>Total Perangkat</CardTitle>
-          <Cpu className='size-4 text-primary' />
+          <div className='flex size-9 items-center justify-center rounded-lg bg-[#218DAE]/12 text-[#218DAE] dark:bg-[#2BBBD7]/15 dark:text-[#2BBBD7]'>
+            <Cpu className='size-5' />
+          </div>
         </CardHeader>
         <CardContent>
           <div className='text-2xl font-bold tabular-nums'>
@@ -48,7 +50,9 @@ export function DevicesKpiCards({ devices }: DevicesKpiCardsProps) {
       <Card>
         <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
           <CardTitle className='text-sm font-medium'>Status Online</CardTitle>
-          <Wifi className='size-4 text-primary' />
+          <div className='flex size-9 items-center justify-center rounded-lg bg-[#2BBBD7]/15 text-[#218DAE] dark:text-[#2BBBD7]'>
+            <Wifi className='size-5' />
+          </div>
         </CardHeader>
         <CardContent>
           <div className='text-2xl font-bold tabular-nums'>{onlineCount}</div>
@@ -63,7 +67,9 @@ export function DevicesKpiCards({ devices }: DevicesKpiCardsProps) {
       <Card>
         <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
           <CardTitle className='text-sm font-medium'>Perlu Perhatian</CardTitle>
-          <AlertTriangle className='size-4 text-amber-600 dark:text-[#FFD758]' />
+          <div className='flex size-9 items-center justify-center rounded-lg bg-[#FCE59A]/70 text-amber-800 dark:bg-[#FFD758]/15 dark:text-[#FFD758]'>
+            <AlertTriangle className='size-5' />
+          </div>
         </CardHeader>
         <CardContent>
           <div className='text-2xl font-bold tabular-nums'>
@@ -71,8 +77,8 @@ export function DevicesKpiCards({ devices }: DevicesKpiCardsProps) {
           </div>
           <p className='text-xs text-muted-foreground'>
             {attentionCount > 0
-              ? 'Node dalam pemeliharaan atau alert aktif'
-              : 'Seluruh node beroperasi normal'}
+              ? 'Perangkat dalam pemeliharaan atau alert aktif'
+              : 'Seluruh perangkat beroperasi normal'}
           </p>
         </CardContent>
       </Card>
@@ -80,7 +86,9 @@ export function DevicesKpiCards({ devices }: DevicesKpiCardsProps) {
       <Card>
         <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
           <CardTitle className='text-sm font-medium'>Rata-rata Aki</CardTitle>
-          <BatteryCharging className='size-4 text-primary' />
+          <div className='flex size-9 items-center justify-center rounded-lg bg-[#218DAE]/12 text-[#218DAE] dark:bg-[#2BBBD7]/15 dark:text-[#2BBBD7]'>
+            <BatteryCharging className='size-5' />
+          </div>
         </CardHeader>
         <CardContent>
           <div className='text-2xl font-bold tabular-nums'>

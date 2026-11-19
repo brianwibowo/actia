@@ -1,4 +1,5 @@
 import { useState, type FormEvent } from 'react'
+import { Users } from 'lucide-react'
 import { formatWib } from '@/lib/api'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -60,11 +61,16 @@ export function UsersManagement({
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle>Pengguna Dashboard</CardTitle>
-        <CardDescription>
-          Tambahkan atau cabut akses akun administrator dan operator.
-        </CardDescription>
+      <CardHeader className='flex flex-row items-start gap-3 space-y-0'>
+        <div className='flex size-10 shrink-0 items-center justify-center rounded-lg bg-[#2BBBD7]/15 text-[#218DAE] dark:text-[#2BBBD7]'>
+          <Users className='size-5' />
+        </div>
+        <div className='space-y-1'>
+          <CardTitle>Pengguna Dashboard</CardTitle>
+          <CardDescription>
+            Tambahkan atau cabut akses akun administrator dan operator.
+          </CardDescription>
+        </div>
       </CardHeader>
       <CardContent className='space-y-6'>
         <form

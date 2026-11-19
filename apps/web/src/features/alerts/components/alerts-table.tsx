@@ -11,6 +11,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+import { AllClearIllustration } from '@/components/svg/actia-illustrations'
 import type { AlertItem } from '@/types'
 import {
   alertMetricLabel,
@@ -56,11 +57,16 @@ export function AlertsTable({
             </TableRow>
           ) : alerts.length === 0 ? (
             <TableRow>
-              <TableCell
-                colSpan={6}
-                className='h-28 text-center text-muted-foreground'
-              >
-                Tidak ada peringatan yang cocok dengan filter saat ini.
+              <TableCell colSpan={6} className='py-10 text-center'>
+                <div className='flex flex-col items-center justify-center gap-2'>
+                  <AllClearIllustration />
+                  <p className='text-sm font-medium text-foreground'>
+                    Tidak ada peringatan aktif pada filter ini
+                  </p>
+                  <p className='text-xs text-muted-foreground'>
+                    Seluruh perangkat berada dalam kondisi terpantau normal.
+                  </p>
+                </div>
               </TableCell>
             </TableRow>
           ) : (

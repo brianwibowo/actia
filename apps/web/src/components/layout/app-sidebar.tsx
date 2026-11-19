@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom'
-import { Command } from 'lucide-react'
 import { useLayout } from '@/context/layout-provider'
 import { useTelemetry } from '@/context/telemetry-provider'
+import { ActiaLogoMark } from '@/components/svg/actia-illustrations'
 import {
   Sidebar,
   SidebarContent,
@@ -32,9 +32,7 @@ export function AppSidebar() {
           <SidebarMenuItem>
             <SidebarMenuButton size='lg' asChild>
               <Link to='/'>
-                <div className='flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground'>
-                  <Command className='size-4' />
-                </div>
+                <ActiaLogoMark className='size-8 shrink-0' />
                 <div className='grid flex-1 text-start text-sm leading-tight'>
                   <span className='truncate font-semibold'>
                     Actia Telemetry

@@ -1,6 +1,5 @@
 import { useNavigate } from 'react-router-dom'
-import { Plus, RefreshCw } from 'lucide-react'
-import { swalToast } from '@/lib/swal'
+import { Plus } from 'lucide-react'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import {
@@ -15,6 +14,7 @@ import { Main } from '@/components/layout/main'
 import { NodeMap } from '@/components/NodeMap'
 import { ThemeSwitch } from '@/components/theme-switch'
 import type { AlertItem, AuthUser, DeviceSummary } from '@/types'
+import { DashboardHero } from './components/dashboard-hero'
 import { DashboardKpis } from './components/dashboard-kpis'
 import { DeviceStatusList } from './components/device-status-list'
 
@@ -38,6 +38,7 @@ export function OverviewPage({
 }: OverviewPageProps) {
   const navigate = useNavigate()
   const hasGeo = devices.some((d) => d.lat !== null && d.lng !== null)
+  const onlineCount = devices.filter((d) => d.status === 'online').length
 
   return (
     <>
@@ -48,28 +49,12 @@ export function OverviewPage({
       </Header>
 
       <Main className='space-y-4'>
-        <div className='flex flex-wrap items-center justify-between gap-2'>
-          <h1 className='text-2xl font-bold tracking-tight'>Dashboard</h1>
-          <div className='flex items-center space-x-2'>
-            <Button
-              variant='outline'
-              size='sm'
-              onClick={() => {
-                onRetry()
-                swalToast('info', 'Memperbarui data telemetri...')
-              }}
-            >
-              <RefreshCw className='size-4' />
-              Muat Ulang
-            </Button>
-            {user.role === 'admin' && (
-              <Button size='sm' onClick={() => navigate('/devices?new=1')}>
-                <Plus className='size-4' />
-                Tambah Perangkat
-              </Button>
-            )}
-          </div>
-        </div>
+        <DashboardHero
+          user={user}
+          onlineCount={onlineCount}
+          totalCount={devices.length}
+          onRetry={onRetry}
+        />
 
         {loading ? (
           <Card>

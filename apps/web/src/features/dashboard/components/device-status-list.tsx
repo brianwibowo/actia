@@ -1,8 +1,8 @@
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Activity } from 'lucide-react'
+import { BatteryCharging, Droplets } from 'lucide-react'
 import { fmtNum, formatRelativeTime } from '@/lib/api'
-import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import {
   Card,
@@ -12,6 +12,7 @@ import {
   CardTitle,
 } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
+import { getDeviceCoverImage } from '@/components/svg/actia-illustrations'
 import type { DeviceSummary } from '@/types'
 
 export function DeviceStatusList({ devices }: { devices: DeviceSummary[] }) {
@@ -43,22 +44,29 @@ export function DeviceStatusList({ devices }: { devices: DeviceSummary[] }) {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
-        <div className='max-h-[310px] space-y-3 overflow-y-auto pe-1'>
+        <div className='max-h-[310px] space-y-2.5 overflow-y-auto pe-1'>
           {filteredDevices.map((d) => (
             <Link
               key={d.id}
               to={`/devices/${d.id}`}
-              className='flex items-center justify-between gap-4 rounded-md p-2 transition-colors hover:bg-accent'
+              className='flex items-center justify-between gap-3 rounded-lg border border-transparent p-2 transition-colors hover:border-border hover:bg-accent/60'
             >
-              <div className='flex items-center gap-3'>
-                <Avatar className='h-9 w-9'>
-                  <AvatarFallback className='bg-primary/10 text-primary'>
-                    <Activity className='size-4' />
+              <div className='flex min-w-0 items-center gap-3'>
+                <Avatar className='h-10 w-10 rounded-lg border'>
+                  <AvatarImage
+                    src={getDeviceCoverImage(d.code)}
+                    alt={d.name}
+                    className='object-cover'
+                  />
+                  <AvatarFallback className='rounded-lg bg-primary/10 text-xs font-bold text-primary'>
+                    {d.code.slice(0, 3)}
                   </AvatarFallback>
                 </Avatar>
-                <div className='space-y-1'>
+                <div className='min-w-0 space-y-1'>
                   <div className='flex items-center gap-2'>
-                    <p className='text-sm leading-none font-medium'>{d.name}</p>
+                    <p className='truncate text-sm leading-none font-medium'>
+                      {d.name}
+                    </p>
                     <Badge
                       variant={
                         d.status === 'online'
@@ -71,17 +79,19 @@ export function DeviceStatusList({ devices }: { devices: DeviceSummary[] }) {
                       {d.status}
                     </Badge>
                   </div>
-                  <p className='text-xs text-muted-foreground'>
+                  <p className='truncate text-xs text-muted-foreground'>
                     {d.code} • {formatRelativeTime(d.last_seen)}
                   </p>
                 </div>
               </div>
-              <div className='text-right font-medium tabular-nums'>
-                <div className='text-sm'>
+              <div className='shrink-0 text-right font-medium tabular-nums'>
+                <div className='inline-flex items-center gap-1 text-sm'>
+                  <Droplets className='size-3.5 text-[#2BBBD7]' />
                   {fmtNum(d.soil_moisture_pct, '%')}
                 </div>
-                <div className='text-xs text-muted-foreground'>
-                  Batt {fmtNum(d.battery_pct, '%', 0)}
+                <div className='flex items-center justify-end gap-1 text-xs text-muted-foreground'>
+                  <BatteryCharging className='size-3.5 text-[#218DAE]' />
+                  {fmtNum(d.battery_pct, '%', 0)}
                 </div>
               </div>
             </Link>

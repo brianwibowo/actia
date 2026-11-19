@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState, type FormEvent } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import {
-  Cpu,
   Database,
   LayoutGrid,
   MapPin,
@@ -34,6 +33,7 @@ import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Header } from '@/components/layout/header'
 import { Main } from '@/components/layout/main'
 import { NodeMap } from '@/components/NodeMap'
+import { EmptyFieldIllustration } from '@/components/svg/actia-illustrations'
 import { ThemeSwitch } from '@/components/theme-switch'
 import type { AuthUser, DeviceSummary } from '@/types'
 import { DeviceFormDialog } from './components/device-form-dialog'
@@ -425,7 +425,7 @@ export function ManageDevicesPage({
         {filteredDevices.length === 0 ? (
           <Card>
             <CardContent className='flex flex-col items-center justify-center py-12 text-center'>
-              <Cpu className='mb-3 size-8 text-muted-foreground' />
+              <EmptyFieldIllustration className='mb-3' />
               <h3 className='text-base font-semibold'>
                 Tidak ada perangkat ditemukan
               </h3>

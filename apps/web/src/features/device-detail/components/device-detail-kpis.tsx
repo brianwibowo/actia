@@ -11,7 +11,9 @@ export function DeviceDetailKpis({ device }: { device: DeviceSummary }) {
           <CardTitle className='text-sm font-medium'>
             Kelembapan Tanah
           </CardTitle>
-          <Droplets className='size-4 text-primary' />
+          <div className='flex size-9 items-center justify-center rounded-lg bg-[#2BBBD7]/15 text-[#218DAE] dark:text-[#2BBBD7]'>
+            <Droplets className='size-5' />
+          </div>
         </CardHeader>
         <CardContent>
           <div className='text-2xl font-bold tabular-nums'>
@@ -28,7 +30,9 @@ export function DeviceDetailKpis({ device }: { device: DeviceSummary }) {
           <CardTitle className='text-sm font-medium'>
             Suhu Udara & Tanah
           </CardTitle>
-          <Thermometer className='size-4 text-primary' />
+          <div className='flex size-9 items-center justify-center rounded-lg bg-[#218DAE]/12 text-[#218DAE] dark:bg-[#2BBBD7]/15 dark:text-[#2BBBD7]'>
+            <Thermometer className='size-5' />
+          </div>
         </CardHeader>
         <CardContent>
           <div className='text-2xl font-bold tabular-nums'>
@@ -43,7 +47,9 @@ export function DeviceDetailKpis({ device }: { device: DeviceSummary }) {
       <Card>
         <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
           <CardTitle className='text-sm font-medium'>Baterai / Aki</CardTitle>
-          <BatteryCharging className='size-4 text-primary' />
+          <div className='flex size-9 items-center justify-center rounded-lg bg-[#218DAE]/12 text-[#218DAE] dark:bg-[#2BBBD7]/15 dark:text-[#2BBBD7]'>
+            <BatteryCharging className='size-5' />
+          </div>
         </CardHeader>
         <CardContent>
           <div className='text-2xl font-bold tabular-nums'>
@@ -61,7 +67,9 @@ export function DeviceDetailKpis({ device }: { device: DeviceSummary }) {
           <CardTitle className='text-sm font-medium'>
             Input Panel Surya
           </CardTitle>
-          <Sun className='size-4 text-amber-600 dark:text-[#FFD758]' />
+          <div className='flex size-9 items-center justify-center rounded-lg bg-[#FCE59A]/70 text-amber-800 dark:bg-[#FFD758]/15 dark:text-[#FFD758]'>
+            <Sun className='size-5' />
+          </div>
         </CardHeader>
         <CardContent>
           <div className='text-2xl font-bold tabular-nums'>

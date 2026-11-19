@@ -1,9 +1,10 @@
 import { Link, useNavigate } from 'react-router-dom'
-import { ArrowLeft, Download, Sliders } from 'lucide-react'
+import { ArrowLeft, Download, MapPin, Sliders } from 'lucide-react'
 import { formatRelativeTime, formatWib } from '@/lib/api'
 import { swalToast } from '@/lib/swal'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { Card } from '@/components/ui/card'
 import {
   Select,
   SelectContent,
@@ -12,6 +13,10 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import {
+  getDeviceCoverImage,
+  RadialGaugeSvg,
+} from '@/components/svg/actia-illustrations'
 import type { AuthUser, DeviceSummary } from '@/types'
 import { rangeDates, type RangeKey } from '../use-device-series'
 
@@ -124,34 +129,71 @@ export function DeviceDetailHeader({
         </div>
       </div>
 
-      <div className='space-y-1'>
-        <div className='flex flex-wrap items-center gap-2'>
-          <Badge variant='outline' className='font-mono'>
-            {device.code}
-          </Badge>
-          <Badge
-            variant={
-              device.status === 'online'
-                ? 'default'
-                : device.status === 'maintenance'
-                  ? 'secondary'
-                  : 'destructive'
-            }
-          >
-            {device.status}
-          </Badge>
-          {device.open_alerts > 0 && (
-            <Badge variant='destructive'>
-              {device.open_alerts} peringatan terbuka
-            </Badge>
-          )}
+      {/* Visual Device Identity Card with Field Photo & Live SVG Gauges */}
+      <Card className='overflow-hidden py-0'>
+        <div className='flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between'>
+          <div className='flex flex-col gap-4 sm:flex-row sm:items-center'>
+            <div className='relative h-36 w-full shrink-0 overflow-hidden bg-muted sm:h-32 sm:w-44'>
+              <img
+                src={getDeviceCoverImage(device.code)}
+                alt={device.name}
+                className='h-full w-full object-cover'
+              />
+            </div>
+
+            <div className='space-y-1.5 px-4 pb-2 sm:px-0 sm:py-4'>
+              <div className='flex flex-wrap items-center gap-2'>
+                <Badge variant='outline' className='font-mono'>
+                  {device.code}
+                </Badge>
+                <Badge
+                  variant={
+                    device.status === 'online'
+                      ? 'default'
+                      : device.status === 'maintenance'
+                        ? 'secondary'
+                        : 'destructive'
+                  }
+                >
+                  {device.status}
+                </Badge>
+                {device.open_alerts > 0 && (
+                  <Badge variant='destructive'>
+                    {device.open_alerts} peringatan terbuka
+                  </Badge>
+                )}
+              </div>
+              <h1 className='text-xl font-bold tracking-tight sm:text-2xl'>
+                {device.name}
+              </h1>
+              <p className='flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground sm:text-sm'>
+                <MapPin className='size-3.5 text-primary' />
+                <span>{device.location || 'Lokasi belum diisi'}</span>
+                <span>•</span>
+                <span>
+                  Update: {formatRelativeTime(device.last_seen)} (
+                  {formatWib(device.last_seen)})
+                </span>
+              </p>
+            </div>
+          </div>
+
+          <div className='flex items-center justify-around gap-5 border-t bg-muted/30 px-5 py-3 sm:border-t-0 sm:border-s sm:py-4'>
+            <RadialGaugeSvg
+              value={device.soil_moisture_pct}
+              label='Kelembapan'
+              color='#2BBBD7'
+              size={60}
+            />
+            <RadialGaugeSvg
+              value={device.battery_pct}
+              label='Baterai Aki'
+              color='#218DAE'
+              size={60}
+            />
+          </div>
         </div>
-        <h1 className='text-2xl font-bold tracking-tight'>{device.name}</h1>
-        <p className='text-sm text-muted-foreground'>
-          {device.location || 'Lokasi belum diisi'} • Update terakhir:{' '}
-          {formatRelativeTime(device.last_seen)} ({formatWib(device.last_seen)})
-        </p>
-      </div>
+      </Card>
     </>
   )
 }
